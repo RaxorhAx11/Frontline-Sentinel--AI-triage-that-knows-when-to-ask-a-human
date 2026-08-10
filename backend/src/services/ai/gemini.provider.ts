@@ -1,13 +1,40 @@
 import { IAIProvider, AIProviderResponse } from './ai.provider.interface';
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+function sanitizeError(error: any, apiKey: string | undefined): Error {
+  if (!error) return new Error('Unknown error');
+  let errMsg = error.message || String(error);
+  let errStack = error.stack || '';
+
+  if (apiKey && apiKey.trim().length > 0) {
+    const escapedKey = apiKey.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+    const keyRegex = new RegExp(escapedKey, 'g');
+    errMsg = errMsg.replace(keyRegex, '[REDACTED_GEMINI_KEY]');
+    errStack = errStack.replace(keyRegex, '[REDACTED_GEMINI_KEY]');
+  }
+
+  // Also replace key query parameters just in case: key=AIzaSy...
+  const keyParamRegex = /key=[a-zA-Z0-9_-]+/g;
+  errMsg = errMsg.replace(keyParamRegex, 'key=[REDACTED_GEMINI_KEY]');
+  errStack = errStack.replace(keyParamRegex, 'key=[REDACTED_GEMINI_KEY]');
+
+  const sanitized = new Error(errMsg);
+  sanitized.name = error.name || 'Error';
+  if (errStack) {
+    sanitized.stack = errStack;
+  }
+  return sanitized;
+}
+
 export class GeminiProvider implements IAIProvider {
   public async generateTriage(rawText: string, systemPrompt: string): Promise<AIProviderResponse> {
-    const apiKey = process.env.AI_API_KEY;
-    const model = process.env.AI_MODEL || 'gemini-1.5-flash';
+    const apiKey = process.env.GEMINI_API_KEY || process.env.AI_API_KEY;
+    const model = process.env.GEMINI_MODEL || process.env.AI_MODEL || 'gemini-3.5-flash';
     const baseUrl = process.env.AI_BASE_URL || 'https://generativelanguage.googleapis.com';
 
     if (!apiKey) {
-      throw new Error('AI API Key is missing. Please configure AI_API_KEY in the environment.');
+      throw new Error('Real Gemini verification requires GEMINI_API_KEY.');
     }
 
     // Standard Gemini v1beta endpoint
@@ -36,20 +63,70 @@ export class GeminiProvider implements IAIProvider {
       },
     };
 
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    });
+    const maxRetries = 3;
+    let attempt = 0;
+    let delay = 1000;
+    let response: Response | null = null;
+    let lastError: any = null;
 
-    if (!response.ok) {
-      const errorText = await response.text().catch(() => 'No detail provided');
-      throw new Error(`Gemini API error (HTTP ${response.status}): ${errorText}`);
+    while (attempt <= maxRetries) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+      try {
+        response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+          signal: controller.signal,
+        });
+
+        clearTimeout(timeoutId);
+
+        if (response.ok) {
+          break;
+        }
+
+        if (response.status === 429) {
+          const errorText = await response.text().catch(() => 'Rate limit exceeded');
+          lastError = new Error(`Gemini API error (HTTP 429): ${errorText}`);
+          
+          attempt++;
+          if (attempt <= maxRetries) {
+            console.warn(`Gemini API returned 429 (Too Many Requests). Retrying attempt ${attempt}/${maxRetries} after ${delay}ms...`);
+            await sleep(delay);
+            delay *= 2;
+            continue;
+          }
+          break;
+        }
+
+        const errorText = await response.text().catch(() => 'No detail provided');
+        throw new Error(`Gemini API error (HTTP ${response.status}): ${errorText}`);
+
+      } catch (error: any) {
+        clearTimeout(timeoutId);
+        if (error.name === 'AbortError') {
+          lastError = new Error('Gemini API request timed out after 10000ms');
+        } else {
+          lastError = error;
+        }
+        break;
+      }
     }
 
-    const data = (await response.json()) as any;
+    if (!response || !response.ok) {
+      throw sanitizeError(lastError || new Error('Failed to generate response from Gemini API'), apiKey);
+    }
+
+    let data: any;
+    try {
+      data = (await response.json()) as any;
+    } catch (error: any) {
+      throw sanitizeError(error, apiKey);
+    }
 
     const candidate = data.candidates?.[0];
     if (!candidate) {
@@ -67,11 +144,13 @@ export class GeminiProvider implements IAIProvider {
 
     const inputTokens = data.usageMetadata?.promptTokenCount ?? null;
     const outputTokens = data.usageMetadata?.candidatesTokenCount ?? null;
+    const totalTokens = data.usageMetadata?.totalTokenCount ?? null;
 
     return {
       rawResponse,
       inputTokens,
       outputTokens,
+      totalTokens,
     };
   }
 }

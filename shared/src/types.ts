@@ -23,6 +23,7 @@ export interface ITriageDecision {
   latencyMs?: number | null;
   inputTokens?: number | null;
   outputTokens?: number | null;
+  totalTokens?: number | null;
   estimatedCost?: number | null;
   createdAt: string;
 }

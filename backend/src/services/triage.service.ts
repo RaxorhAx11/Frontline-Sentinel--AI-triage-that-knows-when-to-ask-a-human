@@ -1,108 +1,72 @@
 import { TriageDecisionOutput, triageDecisionSchema } from '../validators/triage.validator';
 import { ITriageDecision } from '../../../shared/src/types';
 import { CATEGORIES, PRIORITIES } from '../../../shared/src/constants';
+import { IAIProvider } from './ai/ai.provider.interface';
 import { aiProvider } from './ai/gemini.provider';
 import { SYSTEM_PROMPT } from './ai/system.prompt';
 
 export class TriageService {
+  private provider: IAIProvider = aiProvider;
+
+  public setProvider(provider: IAIProvider): void {
+    this.provider = provider;
+  }
+
   /**
    * Main entry point for the triage pipeline.
    * Customer Message -> Input Validation -> AI Triage -> Schema Validation -> Deterministic Guardrails -> Save
    */
   public async triageMessage(messageId: string, rawText: string): Promise<Omit<ITriageDecision, 'createdAt'>> {
     const startTime = Date.now();
-    const model = process.env.AI_MODEL || 'gemini-1.5-flash';
+    const model = process.env.GEMINI_MODEL || process.env.AI_MODEL || 'gemini-3.5-flash';
     const promptVersion = 'v2';
 
     // Guardrail 6: The message is empty/invalid
+    this.validateInput(rawText);
+
+    // 1. Call AI Provider (Guardrail 12: The model provider fails)
+    const aiResponse = await this.provider.generateTriage(rawText, SYSTEM_PROMPT);
+    const latencyMs = Date.now() - startTime;
+
+    // Calculate cost telemetry (based on gemini-1.5-flash pricing / free tier)
+    const inputTokens = aiResponse.inputTokens;
+    const outputTokens = aiResponse.outputTokens;
+    const totalTokens = aiResponse.totalTokens;
+    const estimatedCost = 0; // Free tier API cost is $0
+
+    // 2. Parse JSON (Guardrail 1: JSON cannot be parsed)
+    let parsedJson: any;
     try {
-      this.validateInput(rawText);
-    } catch (err: any) {
-      const latencyMs = Date.now() - startTime;
-      return this.createFallbackDecision(
-        messageId,
-        'The customer message is empty or invalid.',
-        model,
-        promptVersion,
-        latencyMs
-      );
+      const cleanedJson = this.extractJson(aiResponse.rawResponse);
+      parsedJson = JSON.parse(cleanedJson);
+    } catch (err) {
+      console.error('Failed to parse AI JSON:', aiResponse.rawResponse);
+      throw new Error('JSON cannot be parsed: The AI model response was not valid JSON.');
     }
 
-    try {
-      // 1. Call AI Provider (Guardrail 12: The model provider fails)
-      const aiResponse = await aiProvider.generateTriage(rawText, SYSTEM_PROMPT);
-      const latencyMs = Date.now() - startTime;
-
-      // Calculate cost telemetry (based on gemini-1.5-flash pricing)
-      const inputTokens = aiResponse.inputTokens;
-      const outputTokens = aiResponse.outputTokens;
-      const estimatedCost =
-        inputTokens !== null && outputTokens !== null
-          ? inputTokens * 0.000000075 + outputTokens * 0.0000003
-          : null;
-
-      // 2. Parse JSON (Guardrail 1: JSON cannot be parsed)
-      let parsedJson: any;
-      try {
-        const cleanedJson = this.extractJson(aiResponse.rawResponse);
-        parsedJson = JSON.parse(cleanedJson);
-      } catch (err) {
-        console.error('Failed to parse AI JSON:', aiResponse.rawResponse);
-        return this.createFallbackDecision(
-          messageId,
-          'JSON cannot be parsed: The AI model response was not valid JSON.',
-          model,
-          promptVersion,
-          latencyMs,
-          inputTokens,
-          outputTokens,
-          estimatedCost
-        );
-      }
-
-      // 3. Schema Validation (Guardrail 2: Required fields are missing / malformed)
-      const validationResult = triageDecisionSchema.safeParse(parsedJson);
-      if (!validationResult.success) {
-        console.error('AI JSON schema validation failed:', validationResult.error.format());
-        return this.createFallbackDecision(
-          messageId,
-          'Required fields are missing or type-mismatched in AI response.',
-          model,
-          promptVersion,
-          latencyMs,
-          inputTokens,
-          outputTokens,
-          estimatedCost
-        );
-      }
-
-      const decisionOutput = validationResult.data;
-
-      // 4. Apply Deterministic Guardrails (Guardrails 3, 4, 5, 7, 8, 9, 10, 11)
-      const finalizedDecision = this.applyGuardrails(rawText, decisionOutput);
-
-      return {
-        messageId,
-        ...finalizedDecision,
-        model,
-        promptVersion,
-        latencyMs,
-        inputTokens,
-        outputTokens,
-        estimatedCost,
-      };
-    } catch (error: any) {
-      console.error('Triage pipeline execution error:', error);
-      const latencyMs = Date.now() - startTime;
-      // Guardrail 12: Return fallback decision if model provider fails
-      return this.createFallbackDecision(
-        messageId,
-        `The model provider failed: ${error.message || 'API unavailable'}`,
-        model,
-        promptVersion,
-        latencyMs
-      );
+    // 3. Schema Validation (Guardrail 2: Required fields are missing / malformed)
+    const validationResult = triageDecisionSchema.safeParse(parsedJson);
+    if (!validationResult.success) {
+      console.error('AI JSON schema validation failed:', validationResult.error.format());
+      throw new Error('Schema validation failed: Required fields are missing or type-mismatched in AI response.');
     }
+
+    const decisionOutput = validationResult.data;
+
+    // 4. Apply Deterministic Guardrails (Guardrails 3, 4, 5, 7, 8, 9, 10, 11)
+    const finalizedDecision = this.applyGuardrails(rawText, decisionOutput);
+
+    return {
+      messageId,
+      ...finalizedDecision,
+      model,
+      promptVersion,
+      latencyMs,
+      inputTokens,
+      outputTokens,
+      totalTokens,
+      estimatedCost,
+    };
   }
 
   /**
@@ -127,7 +91,41 @@ export class TriageService {
     if (cleaned.endsWith('```')) {
       cleaned = cleaned.slice(0, -3);
     }
-    return cleaned.trim();
+    cleaned = cleaned.trim();
+
+    // Find the first '{' and match it with the correct closing '}'
+    const firstBrace = cleaned.indexOf('{');
+    if (firstBrace !== -1) {
+      let braceCount = 0;
+      let insideString = false;
+      let escapeNext = false;
+      for (let i = firstBrace; i < cleaned.length; i++) {
+        const char = cleaned[i];
+        if (escapeNext) {
+          escapeNext = false;
+          continue;
+        }
+        if (char === '\\') {
+          escapeNext = true;
+          continue;
+        }
+        if (char === '"') {
+          insideString = !insideString;
+          continue;
+        }
+        if (!insideString) {
+          if (char === '{') {
+            braceCount++;
+          } else if (char === '}') {
+            braceCount--;
+            if (braceCount === 0) {
+              return cleaned.slice(firstBrace, i + 1);
+            }
+          }
+        }
+      }
+    }
+    return cleaned;
   }
 
   /**
@@ -157,13 +155,6 @@ export class TriageService {
       output.confidence = 0.0;
       output.needsHuman = true;
       output.humanReason = 'AI response mapping error: Confidence score out of bounds';
-    }
-
-    // Guardrail 7: Confidence is below the configured human-review threshold
-    const HUMAN_REVIEW_THRESHOLD = 0.70;
-    if (output.confidence < HUMAN_REVIEW_THRESHOLD) {
-      output.needsHuman = true;
-      output.humanReason = output.humanReason || 'AI confidence is below the configured threshold.';
     }
 
     // Guardrail 8: The message is clearly ambiguous
@@ -200,6 +191,13 @@ export class TriageService {
       output.humanReason = output.humanReason || 'The request is out of scope.';
     }
 
+    // Guardrail 7: Confidence is below the configured human-review threshold
+    const HUMAN_REVIEW_THRESHOLD = 0.70;
+    if (output.confidence < HUMAN_REVIEW_THRESHOLD) {
+      output.needsHuman = true;
+      output.humanReason = output.humanReason || 'AI confidence is below the configured threshold.';
+    }
+
     return output;
   }
 
@@ -214,6 +212,7 @@ export class TriageService {
     latencyMs: number,
     inputTokens: number | null = null,
     outputTokens: number | null = null,
+    totalTokens: number | null = null,
     estimatedCost: number | null = null
   ): Omit<ITriageDecision, 'createdAt'> {
     return {
@@ -230,6 +229,7 @@ export class TriageService {
       latencyMs,
       inputTokens,
       outputTokens,
+      totalTokens,
       estimatedCost,
     };
   }

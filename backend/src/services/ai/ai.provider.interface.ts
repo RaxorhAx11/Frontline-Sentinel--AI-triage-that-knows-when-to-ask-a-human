@@ -2,6 +2,7 @@ export interface AIProviderResponse {
   rawResponse: string;
   inputTokens: number | null;
   outputTokens: number | null;
+  totalTokens: number | null;
 }
 
 export interface IAIProvider {

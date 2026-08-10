@@ -6,11 +6,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const dotenv_1 = __importDefault(require("dotenv"));
+const path_1 = __importDefault(require("path"));
 const api_1 = __importDefault(require("./routes/api"));
 const db_1 = require("./config/db");
 const error_middleware_1 = require("./middleware/error.middleware");
 // Load environment variables
-dotenv_1.default.config();
+dotenv_1.default.config({ path: path_1.default.resolve(__dirname, '../.env') });
 const app = (0, express_1.default)();
 const port = process.env.PORT || 5000;
 // Enable CORS

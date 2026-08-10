@@ -268,9 +268,15 @@ export const MessageDetails: React.FC<MessageDetailsProps> = ({
                     <span className="text-slate-300">{decision.outputTokens ?? 'N/A'}</span>
                   </div>
                   <div className="flex justify-between border-b border-slate-800/40 pb-1">
+                    <span className="text-slate-500">Total Tokens:</span>
+                    <span className="text-slate-300">{decision.totalTokens ?? 'N/A'}</span>
+                  </div>
+                  <div className="flex justify-between border-b border-slate-800/40 pb-1">
                     <span className="text-slate-500">Est. Cost (USD):</span>
                     <span className="text-slate-300">
-                      {decision.estimatedCost !== null && decision.estimatedCost !== undefined
+                      {decision.estimatedCost === 0
+                        ? 'Free tier / $0 API cost'
+                        : decision.estimatedCost !== null && decision.estimatedCost !== undefined
                         ? `$${decision.estimatedCost.toFixed(6)}`
                         : 'N/A'}
                     </span>
