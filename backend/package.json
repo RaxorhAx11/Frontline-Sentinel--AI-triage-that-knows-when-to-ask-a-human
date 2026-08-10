@@ -6,7 +6,11 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "tsc",
-    "start": "node dist/backend/src/index.js"
+    "start": "node dist/backend/src/index.js",
+    "test:eval": "ts-node src/scripts/verify_phase5.ts",
+    "verify:phase5": "ts-node src/scripts/verify_phase5.ts",
+    "verify:e2e:phase5": "ts-node src/scripts/verify_e2e_phase5.ts",
+    "verify:phase6": "ts-node src/scripts/verify_phase6.ts"
   },
   "dependencies": {
     "cors": "^2.8.5",

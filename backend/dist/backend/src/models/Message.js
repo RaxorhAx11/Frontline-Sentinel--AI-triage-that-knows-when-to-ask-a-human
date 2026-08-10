@@ -49,6 +49,10 @@ const MessageSchema = new mongoose_1.Schema({
         default: 'pending',
         required: true,
     },
+    externalId: {
+        type: String,
+        default: null,
+    },
 }, {
     timestamps: true,
     toJSON: {

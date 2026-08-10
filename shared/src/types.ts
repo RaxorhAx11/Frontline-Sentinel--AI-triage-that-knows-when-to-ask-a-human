@@ -50,3 +50,55 @@ export interface IHealthResponse {
 export interface ICreateMessageInput {
   rawText: string;
 }
+
+export interface IEvaluationGroundTruth {
+  id?: string;
+  _id?: string;
+  messageId: string;
+  groundTruthCategory: Category;
+  groundTruthPriority: Priority;
+  groundTruthNeedsHuman: boolean;
+  notes: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface IEvaluationResult {
+  messageId: string;
+  messageText: string;
+  aiDecision: ITriageDecision | null;
+  groundTruth: IEvaluationGroundTruth;
+  comparison: {
+    categoryCorrect: boolean;
+    priorityCorrect: boolean;
+    humanEscalationCorrect: boolean;
+    overallCorrect: boolean;
+  };
+}
+
+export interface IEvaluationMetrics {
+  evaluatedCount: number;
+  categoryCorrect: number;
+  categoryAgreement: number;
+  priorityCorrect: number;
+  priorityAgreement: number;
+  humanEscalationCorrect: number;
+  humanEscalationAgreement: number;
+  humanEscalationRecall: number | null | string;
+  overallCorrect: number;
+  overallAgreement: number;
+  falsePositiveHumanEscalations: number;
+  falseNegativeHumanEscalations: number;
+  averageConfidence: number;
+  averageLatency: number;
+  medianLatency: number;
+  minLatency: number;
+  maxLatency: number;
+  averageInputTokens: number | null;
+  averageOutputTokens: number | null;
+  averageTotalTokens: number | null;
+  totalCost: number | null;
+  costPerMessage: number | null;
+  pricingConfigured: boolean;
+}
+

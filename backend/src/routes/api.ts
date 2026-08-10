@@ -14,10 +14,23 @@ import {
   stopBulkTriage,
   getMessagesStats,
 } from '../controllers/message.controller';
+import {
+  getEvaluations,
+  saveGroundTruth,
+  getEvaluationByMessageId,
+  getMetrics,
+  seedEvaluationDataset,
+} from '../controllers/evaluation.controller';
+import {
+  getReviews,
+  createReview,
+  updateReview,
+} from '../controllers/review.controller';
 import { validateBody } from '../middleware/validate.middleware';
 import { createMessageSchema } from '../validators/message.validator';
 
 const router = Router();
+
 
 // Health check endpoint
 router.get('/health', checkHealth);
@@ -39,6 +52,18 @@ router.get('/messages', getMessages);
 // Run/Retry triage endpoints
 router.post('/triage/:messageId', runTriage);
 router.post('/triage/:messageId/retry', retryTriage);
+
+// Evaluation endpoints
+router.get('/evaluations/metrics', getMetrics);
+router.get('/evaluations', getEvaluations);
+router.post('/evaluations', saveGroundTruth);
+router.post('/evaluations/seed', seedEvaluationDataset);
+router.get('/evaluations/:messageId', getEvaluationByMessageId);
+
+// Human Review endpoints
+router.get('/reviews', getReviews);
+router.post('/reviews/:messageId', createReview);
+router.patch('/reviews/:messageId', updateReview);
 
 // Single message details endpoint
 router.get('/messages/:id', getMessageById);

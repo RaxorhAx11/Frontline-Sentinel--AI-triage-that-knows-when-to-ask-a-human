@@ -1,19 +1,29 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Shield, Server } from 'lucide-react';
+import { Shield, Server, LayoutDashboard, Inbox, ShieldAlert, Sliders } from 'lucide-react';
 import { api, ApiError } from './api/client';
-import { DashboardStats } from './components/DashboardStats';
 import { MessageForm } from './components/MessageForm';
 import { MessagesTable } from './components/MessagesTable';
 import { MessageDetails } from './components/MessageDetails';
 import { DatasetTriage } from './components/DatasetTriage';
+import { EvaluationDashboard } from './components/EvaluationDashboard';
+import { DashboardView } from './components/DashboardView';
+import { HumanReviewQueue } from './components/HumanReviewQueue';
+import { HumanReviewDetail } from './components/HumanReviewDetail';
 import type { IMessageDetail } from '../../shared/src/types';
 
 export default function App() {
   const [stats, setStats] = useState<any>(null);
   const [messages, setMessages] = useState<IMessageDetail[]>([]);
   const [selectedMessage, setSelectedMessage] = useState<IMessageDetail | null>(null);
-  const [activeTab, setActiveTab] = useState<'single' | 'bulk'>('single');
   
+  // Navigation and sub-tabs
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'messages' | 'reviews' | 'evaluation'>('dashboard');
+  const [ingestionTab, setIngestionTab] = useState<'single' | 'bulk'>('single');
+  
+  // Reviews audit selection
+  const [selectedReviewCase, setSelectedReviewCase] = useState<any>(null);
+  const [refreshReviewsToggle, setRefreshReviewsToggle] = useState(false);
+
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalMessages, setTotalMessages] = useState(0);
@@ -23,6 +33,10 @@ export default function App() {
   const [submitting, setSubmitting] = useState(false);
   const [apiOnline, setApiOnline] = useState<boolean | null>(null);
   const [triaging, setTriaging] = useState(false);
+
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [priorityFilter, setPriorityFilter] = useState('all');
+  const [categoryFilter, setCategoryFilter] = useState('all');
 
   // Fetch Dashboard Stats
   const fetchStats = useCallback(async () => {
@@ -34,7 +48,6 @@ export default function App() {
     } catch (err) {
       console.error('Failed to fetch stats:', err);
       if (err instanceof ApiError && err.status === 503) {
-        // Backend is up but database is down
         setApiOnline(true);
       } else {
         setApiOnline(false);
@@ -43,10 +56,6 @@ export default function App() {
       setLoadingStats(false);
     }
   }, []);
-
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [priorityFilter, setPriorityFilter] = useState('all');
-  const [categoryFilter, setCategoryFilter] = useState('all');
 
   // Fetch Messages List
   const fetchMessages = useCallback(async (targetPage = 1, currentFilters = { status: statusFilter, priority: priorityFilter, category: categoryFilter }) => {
@@ -98,9 +107,9 @@ export default function App() {
     setSubmitting(true);
     try {
       await api.createMessage(rawText);
-      // Reset page to 1 and reload data
       setPage(1);
       await Promise.all([fetchStats(), fetchMessages(1)]);
+      setActiveTab('messages'); // navigate to messages log to show user the newly ingested ticket
     } catch (err) {
       console.error('Error submitting message:', err);
       throw err;
@@ -109,10 +118,10 @@ export default function App() {
     }
   };
 
-  // Handle row selection (fetches details by ID to get latest decision updates)
+  // Handle row selection (inspect)
   const handleSelectMessage = async (msg: IMessageDetail) => {
     try {
-      setSelectedMessage(msg); // Set initial details immediately
+      setSelectedMessage(msg);
       const fullMsg = await api.getMessageById(msg._id);
       setSelectedMessage(fullMsg);
     } catch (err) {
@@ -147,39 +156,94 @@ export default function App() {
     }
   };
 
+  const handleReviewSubmitted = () => {
+    setSelectedReviewCase(null);
+    setRefreshReviewsToggle((prev) => !prev);
+    handleRefresh();
+  };
+
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col selection:bg-indigo-500/30">
-      {/* Header Banner */}
-      <header className="border-b border-slate-800 bg-slate-900/40 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+    <div className="min-h-screen bg-slate-950 flex flex-col selection:bg-indigo-500/30 text-slate-100 font-sans antialiased">
+      {/* Header Navigation */}
+      <header className="border-b border-slate-900 bg-slate-900/40 backdrop-blur-md sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          {/* Logo */}
           <div className="flex items-center gap-3">
-            <div className="bg-indigo-600 p-2.5 rounded-xl shadow-[0_0_15px_rgba(99,102,241,0.4)]">
-              <Shield className="text-white" size={22} />
+            <div className="bg-indigo-600 p-2 rounded-xl shadow-[0_0_15px_rgba(99,102,241,0.3)]">
+              <Shield className="text-white" size={20} />
             </div>
             <div>
-              <h1 className="text-xl font-extrabold tracking-tight text-white m-0 leading-none">
+              <h1 className="text-lg font-black tracking-tight text-white m-0 leading-none">
                 FRONTLINE SENTINEL
               </h1>
-              <span className="text-slate-500 text-[10px] uppercase font-bold tracking-widest block mt-1">
-                Phase 1 Triage Diagnostic Control
+              <span className="text-slate-500 text-[9px] uppercase font-bold tracking-widest block mt-1">
+                AI Triage & Triage Safety System
               </span>
             </div>
           </div>
 
+          {/* Navigation Tabs */}
+          <nav className="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
+            <button
+              onClick={() => setActiveTab('dashboard')}
+              className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-lg transition-all duration-200 cursor-pointer ${
+                activeTab === 'dashboard'
+                  ? 'bg-indigo-600 text-white shadow-md'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <LayoutDashboard size={14} />
+              Dashboard
+            </button>
+            <button
+              onClick={() => setActiveTab('messages')}
+              className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-lg transition-all duration-200 cursor-pointer ${
+                activeTab === 'messages'
+                  ? 'bg-indigo-600 text-white shadow-md'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Inbox size={14} />
+              Messages
+            </button>
+            <button
+              onClick={() => setActiveTab('reviews')}
+              className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-lg transition-all duration-200 cursor-pointer ${
+                activeTab === 'reviews'
+                  ? 'bg-indigo-600 text-white shadow-md'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <ShieldAlert size={14} />
+              Human Review
+            </button>
+            <button
+              onClick={() => setActiveTab('evaluation')}
+              className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-lg transition-all duration-200 cursor-pointer ${
+                activeTab === 'evaluation'
+                  ? 'bg-indigo-600 text-white shadow-md'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Sliders size={14} />
+              Evaluation
+            </button>
+          </nav>
+
+          {/* Status indicators */}
           <div className="flex items-center gap-4">
-            {/* System Status Indicators */}
             <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-full px-3 py-1.5 text-xs font-semibold text-slate-400">
-              <Server size={14} className="text-slate-500" />
-              <span>Core Service API:</span>
+              <Server size={12} className="text-slate-500" />
+              <span>System:</span>
               {apiOnline === null ? (
-                <span className="flex h-2.5 w-2.5 rounded-full bg-slate-600 animate-pulse" />
+                <span className="flex h-2 w-2 rounded-full bg-slate-600 animate-pulse" />
               ) : apiOnline ? (
-                <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                <span className="flex h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
               ) : (
-                <span className="flex h-2.5 w-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
+                <span className="flex h-2 w-2 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
               )}
-              <span className="text-slate-300">
-                {apiOnline === null ? 'Checking...' : apiOnline ? 'Online' : 'Offline'}
+              <span className="text-slate-350 font-bold">
+                {apiOnline === null ? 'Checking...' : apiOnline ? 'Active' : 'Offline'}
               </span>
             </div>
           </div>
@@ -187,74 +251,86 @@ export default function App() {
       </header>
 
       {/* Main Content Workspace */}
-      <main className="flex-1 max-w-7xl mx-auto px-6 py-8 w-full space-y-8">
-        {/* Diagnostics Stats row */}
-        <DashboardStats 
-          stats={stats} 
-          loading={loadingStats} 
-          onRefresh={handleRefresh} 
-        />
+      <main className="flex-1 max-w-7xl mx-auto px-6 py-8 w-full">
+        {activeTab === 'dashboard' && (
+          <DashboardView
+            stats={stats}
+            loadingStats={loadingStats}
+            recentMessages={messages}
+            loadingMessages={loadingMessages}
+            onRefresh={handleRefresh}
+            onNavigateToReviews={() => setActiveTab('reviews')}
+            onSelectMessage={handleSelectMessage}
+          />
+        )}
 
-        {/* Dashboard Actions and Logs Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-          {/* Main Logs Area */}
-          <div className="lg:col-span-2 space-y-4">
-            <MessagesTable
-              data={messages}
-              loading={loadingMessages}
-              total={totalMessages}
-              page={page}
-              totalPages={totalPages}
-              statusFilter={statusFilter}
-              priorityFilter={priorityFilter}
-              categoryFilter={categoryFilter}
-              onFilterChange={handleFilterChange}
-              onPageChange={(newPage) => {
-                setPage(newPage);
-                fetchMessages(newPage);
-              }}
-              onSelectMessage={handleSelectMessage}
-            />
-          </div>
-
-          {/* Side Control Ingestion Panel */}
-          <div className="space-y-6">
-            <div className="flex bg-slate-900/60 p-1 rounded-xl border border-slate-800/80">
-              <button
-                onClick={() => setActiveTab('single')}
-                className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all duration-200 ${
-                  activeTab === 'single'
-                    ? 'bg-indigo-600 text-white shadow-md'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                Single Ticket
-              </button>
-              <button
-                onClick={() => setActiveTab('bulk')}
-                className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all duration-200 ${
-                  activeTab === 'bulk'
-                    ? 'bg-indigo-600 text-white shadow-md'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                Bulk Dataset Triage
-              </button>
+        {activeTab === 'messages' && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+            {/* Messages Logs Table */}
+            <div className="lg:col-span-2 space-y-4">
+              <MessagesTable
+                data={messages}
+                loading={loadingMessages}
+                total={totalMessages}
+                page={page}
+                totalPages={totalPages}
+                statusFilter={statusFilter}
+                priorityFilter={priorityFilter}
+                categoryFilter={categoryFilter}
+                onFilterChange={handleFilterChange}
+                onPageChange={(newPage) => {
+                  setPage(newPage);
+                  fetchMessages(newPage);
+                }}
+                onSelectMessage={handleSelectMessage}
+              />
             </div>
 
-            {activeTab === 'single' ? (
-              <MessageForm 
-                onSubmit={handleSubmitMessage} 
-                loading={submitting} 
-              />
-            ) : (
-              <DatasetTriage onImportComplete={handleRefresh} />
-            )}
+            {/* Side Ingestion Panel */}
+            <div className="space-y-6">
+              <div className="flex bg-slate-900/60 p-1 rounded-xl border border-slate-800">
+                <button
+                  onClick={() => setIngestionTab('single')}
+                  className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all duration-200 cursor-pointer ${
+                    ingestionTab === 'single'
+                      ? 'bg-indigo-600 text-white shadow-md'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  Single Message
+                </button>
+                <button
+                  onClick={() => setIngestionTab('bulk')}
+                  className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all duration-200 cursor-pointer ${
+                    ingestionTab === 'bulk'
+                      ? 'bg-indigo-600 text-white shadow-md'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  Bulk Dataset Ingest
+                </button>
+              </div>
+
+              {ingestionTab === 'single' ? (
+                <MessageForm onSubmit={handleSubmitMessage} loading={submitting} />
+              ) : (
+                <DatasetTriage onImportComplete={handleRefresh} />
+              )}
+            </div>
           </div>
-        </div>
+        )}
+
+        {activeTab === 'reviews' && (
+          <HumanReviewQueue
+            onSelectCase={(caseItem) => setSelectedReviewCase(caseItem)}
+            triggerRefresh={refreshReviewsToggle}
+          />
+        )}
+
+        {activeTab === 'evaluation' && <EvaluationDashboard />}
       </main>
 
-      {/* Details drawer inspector */}
+      {/* Selected Message Inspector Drawer */}
       {selectedMessage && (
         <MessageDetails
           message={selectedMessage}
@@ -264,11 +340,20 @@ export default function App() {
         />
       )}
 
+      {/* Selected Review Audit Drawer */}
+      {selectedReviewCase && (
+        <HumanReviewDetail
+          caseItem={selectedReviewCase}
+          onClose={() => setSelectedReviewCase(null)}
+          onReviewSubmitted={handleReviewSubmitted}
+        />
+      )}
+
       {/* Footer */}
       <footer className="border-t border-slate-900 bg-slate-950 py-6 mt-12">
-        <div className="max-w-7xl mx-auto px-6 flex justify-between items-center text-xs text-slate-600">
-          <span>Frontline Sentinel Support Portal © 2026. All rights reserved.</span>
-          <span>Hackathon Build — Foundation Active</span>
+        <div className="max-w-7xl mx-auto px-6 flex justify-between items-center text-xs text-slate-600 font-semibold">
+          <span>Frontline Sentinel — Triage Control Center © 2026.</span>
+          <span>Demo Ingestion Readiness — Active</span>
         </div>
       </footer>
     </div>

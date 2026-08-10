@@ -32,7 +32,7 @@ export const DatasetTriage: React.FC<DatasetTriageProps> = ({ onImportComplete }
 
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  const pollInterval = useRef<NodeJS.Timeout | null>(null);
+  const pollInterval = useRef<any>(null);
 
   // Read file content
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -368,6 +368,9 @@ export class MessageService {
       p1: 0,
       p2: 0,
       p3: 0,
+      automated: 0,
+      highPriority: 0,
+      failedTotal: 0,
       averageConfidence: 0,
     };
 
@@ -397,11 +400,36 @@ export class MessageService {
       }
     });
 
-    // Aggregations on TriageDecision
+    // Aggregations on TriageDecision joined with reviews to compute current priorities
     const priorityCounts = await TriageDecision.aggregate([
       {
+        $lookup: {
+          from: 'reviews',
+          localField: 'messageId',
+          foreignField: 'messageId',
+          as: 'review',
+        },
+      },
+      {
+        $unwind: {
+          path: '$review',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $addFields: {
+          currentPriority: {
+            $cond: {
+              if: '$review',
+              then: '$review.finalPriority',
+              else: '$priority',
+            },
+          },
+        },
+      },
+      {
         $group: {
-          _id: '$priority',
+          _id: '$currentPriority',
           count: { $sum: 1 },
         },
       },
@@ -413,6 +441,10 @@ export class MessageService {
       if (item._id === 'P2') stats.p2 = item.count;
       if (item._id === 'P3') stats.p3 = item.count;
     });
+
+    stats.automated = stats.completed;
+    stats.highPriority = stats.p0 + stats.p1;
+    stats.failedTotal = stats.failed + stats.invalid;
 
     const avgConfResult = await TriageDecision.aggregate([
       {

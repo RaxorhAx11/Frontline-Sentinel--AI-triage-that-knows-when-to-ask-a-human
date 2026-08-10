@@ -20,5 +20,6 @@ exports.STATUSES = [
     'processing',
     'completed',
     'failed',
-    'human_review'
+    'human_review',
+    'invalid'
 ];

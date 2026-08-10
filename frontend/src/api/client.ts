@@ -127,4 +127,68 @@ export const api = {
     request<{ status: string }>('/triage/bulk/stop', {
       method: 'POST',
     }),
+
+  getEvaluations: () => request<any[]>('/evaluations'),
+
+  saveGroundTruth: (payload: {
+    messageId: string;
+    groundTruthCategory: string;
+    groundTruthPriority: string;
+    groundTruthNeedsHuman: boolean;
+    notes?: string;
+  }) =>
+    request<any>('/evaluations', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  getEvaluationDetails: (messageId: string) => request<any>(`/evaluations/${messageId}`),
+
+  getEvaluationMetrics: () => request<any>('/evaluations/metrics'),
+
+  seedEvaluationDataset: () =>
+    request<any>('/evaluations/seed', {
+      method: 'POST',
+    }),
+
+  getReviews: (page = 1, limit = 10, filters?: { priority?: string; status?: string }) => {
+    let url = `/reviews?page=${page}&limit=${limit}`;
+    if (filters) {
+      if (filters.priority) url += `&priority=${filters.priority}`;
+      if (filters.status) url += `&status=${filters.status}`;
+    }
+    return request<any>(url);
+  },
+
+  createReview: (
+    messageId: string,
+    payload: {
+      decision: 'accepted' | 'overridden';
+      finalCategory: string;
+      finalPriority: string;
+      finalAction: string;
+      finalNeedsHuman: boolean;
+      notes?: string;
+    }
+  ) =>
+    request<any>(`/reviews/${messageId}`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  updateReview: (
+    messageId: string,
+    payload: {
+      decision?: 'accepted' | 'overridden';
+      finalCategory?: string;
+      finalPriority?: string;
+      finalAction?: string;
+      finalNeedsHuman?: boolean;
+      notes?: string;
+    }
+  ) =>
+    request<any>(`/reviews/${messageId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    }),
 };
