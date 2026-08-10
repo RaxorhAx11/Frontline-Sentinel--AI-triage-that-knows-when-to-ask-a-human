@@ -233,11 +233,10 @@ export const HumanReviewQueue: React.FC<HumanReviewQueueProps> = ({ onSelectCase
                       </td>
                       <td className="py-3.5 px-6">
                         {c.review ? (
-                          <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-extrabold border ${
-                            c.review.decision === 'accepted'
+                          <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-extrabold border ${c.review.decision === 'accepted'
                               ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                               : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'
-                          }`}>
+                            }`}>
                             {c.review.decision === 'accepted' ? 'Accepted' : 'Overridden'}
                           </span>
                         ) : (

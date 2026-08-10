@@ -73,7 +73,7 @@ export const MessagesTable: React.FC<MessagesTableProps> = ({
           <h3 className="text-lg font-bold text-white">Ingestion & Classification Logs</h3>
           {loading && <span className="text-indigo-400 text-xs font-semibold animate-pulse block mt-1">Fetching records...</span>}
         </div>
-        
+
         {/* Filters Panel */}
         <div className="flex flex-wrap items-center gap-3 text-xs">
           <div className="flex flex-col gap-1">

@@ -11,13 +11,16 @@
   width: 6px;
   height: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: rgba(15, 23, 42, 0.5);
 }
+
 ::-webkit-scrollbar-thumb {
   background: rgba(99, 102, 241, 0.3);
   border-radius: 4px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(99, 102, 241, 0.5);
 }
@@ -26,112 +29,180 @@
 .dataset-triage-card {
   @apply bg-slate-900/60 backdrop-blur-md border border-slate-800 rounded-xl p-6 shadow-xl space-y-6;
 }
+
 .section-title {
   @apply text-lg font-bold text-white leading-none;
 }
+
 .section-subtitle {
   @apply text-slate-400 text-xs mt-1.5 leading-relaxed;
 }
+
 .upload-container {
   @apply space-y-4;
 }
+
 .file-dropzone {
   @apply border-2 border-dashed border-slate-800 hover:border-indigo-500/50 rounded-xl p-6 transition-all duration-300 bg-slate-950/40 cursor-pointer;
 }
+
 .file-input {
   @apply hidden;
 }
+
 .dropzone-label {
   @apply flex flex-col items-center justify-center gap-3 text-slate-400 cursor-pointer;
 }
+
 .file-info-selected {
   @apply flex flex-col items-center text-center;
 }
+
 .file-name {
   @apply text-sm font-bold text-slate-200 truncate max-w-xs;
 }
+
 .file-size {
   @apply text-xs text-slate-500 mt-1;
 }
+
 .dropzone-text {
   @apply text-xs text-slate-400 text-center;
 }
+
 .highlight-text {
   @apply text-indigo-400 font-semibold;
 }
+
 .detect-summary {
   @apply flex items-center justify-between p-3.5 bg-slate-950/80 rounded-xl border border-slate-800;
 }
+
 .summary-item {
   @apply flex items-center gap-2 text-xs;
 }
+
 .summary-label {
   @apply text-slate-400;
 }
+
 .summary-value {
   @apply font-extrabold text-slate-200;
 }
+
 .btn-bulk-action {
   @apply px-4 py-2 text-xs font-bold rounded-lg;
 }
+
 .import-success-panel {
   @apply space-y-6;
 }
+
 .success-banner {
   @apply flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl p-4;
 }
+
 .success-banner h3 {
   @apply text-sm font-bold m-0;
 }
+
 .success-icon {
   @apply text-emerald-400 shrink-0;
 }
+
 .stats-grid {
   @apply grid grid-cols-2 sm:grid-cols-3 gap-3;
 }
+
 .stat-box {
   @apply bg-slate-950/60 border border-slate-800 rounded-xl p-3 flex flex-col items-center justify-center text-center transition-all duration-300;
 }
+
 .stat-box:hover {
   @apply border-slate-700/50 shadow-md;
 }
+
 .stat-num {
   @apply text-lg font-black text-slate-200 tracking-tight;
 }
+
 .stat-name {
   @apply text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-1;
 }
-.status-completed .stat-num { @apply text-emerald-400; }
-.status-completed { @apply bg-emerald-500/5 border-emerald-500/10; }
-.status-failed .stat-num { @apply text-rose-400; }
-.status-failed { @apply bg-rose-500/5 border-rose-500/10; }
-.status-warning .stat-num { @apply text-amber-400; }
-.status-warning { @apply bg-amber-500/5 border-amber-500/10; }
-.status-processing .stat-num { @apply text-blue-400; }
-.status-processing { @apply bg-blue-500/5 border-blue-500/10; }
-.status-human .stat-num { @apply text-orange-400; }
-.status-human { @apply bg-orange-500/5 border-orange-500/10; }
-.status-invalid .stat-num { @apply text-purple-400; }
-.status-invalid { @apply bg-purple-500/5 border-purple-500/10; }
+
+.status-completed .stat-num {
+  @apply text-emerald-400;
+}
+
+.status-completed {
+  @apply bg-emerald-500/5 border-emerald-500/10;
+}
+
+.status-failed .stat-num {
+  @apply text-rose-400;
+}
+
+.status-failed {
+  @apply bg-rose-500/5 border-rose-500/10;
+}
+
+.status-warning .stat-num {
+  @apply text-amber-400;
+}
+
+.status-warning {
+  @apply bg-amber-500/5 border-amber-500/10;
+}
+
+.status-processing .stat-num {
+  @apply text-blue-400;
+}
+
+.status-processing {
+  @apply bg-blue-500/5 border-blue-500/10;
+}
+
+.status-human .stat-num {
+  @apply text-orange-400;
+}
+
+.status-human {
+  @apply bg-orange-500/5 border-orange-500/10;
+}
+
+.status-invalid .stat-num {
+  @apply text-purple-400;
+}
+
+.status-invalid {
+  @apply bg-purple-500/5 border-purple-500/10;
+}
 
 .action-row {
   @apply flex gap-3;
 }
-.action-row .btn, .control-row .btn {
+
+.action-row .btn,
+.control-row .btn {
   @apply flex-1 py-2.5 text-xs font-bold rounded-xl transition-all duration-200;
 }
+
 .btn-primary {
   @apply bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/20 active:scale-95;
 }
+
 .btn-secondary {
   @apply bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/50 active:scale-95;
 }
+
 .btn-success {
   @apply bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/20 active:scale-95;
 }
+
 .btn-warning {
   @apply bg-amber-600 hover:bg-amber-500 text-white shadow-lg shadow-amber-600/20 active:scale-95;
 }
+
 .btn-danger {
   @apply bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-600/20 active:scale-95;
 }
@@ -139,27 +210,35 @@
 .triage-progress-panel {
   @apply space-y-6;
 }
+
 .progress-header {
   @apply flex justify-between items-center;
 }
+
 .status-indicator {
   @apply flex items-center gap-3;
 }
+
 .status-indicator h3 {
   @apply text-sm font-extrabold text-white m-0;
 }
+
 .status-badge {
   @apply text-[10px] font-black px-2 py-0.5 rounded border tracking-wider;
 }
+
 .status-badge.status-running {
   @apply bg-blue-500/10 text-blue-400 border-blue-500/20 animate-pulse;
 }
+
 .status-badge.status-paused {
   @apply bg-amber-500/10 text-amber-400 border-amber-500/20;
 }
+
 .status-badge.status-stopped {
   @apply bg-rose-500/10 text-rose-400 border-rose-500/20;
 }
+
 .status-badge.status-completed {
   @apply bg-emerald-500/10 text-emerald-400 border-emerald-500/20;
 }
@@ -167,24 +246,30 @@
 .progress-text {
   @apply text-xs font-semibold text-slate-400;
 }
+
 .progress-bar-container {
   @apply bg-slate-950 border border-slate-800 rounded-full h-4 overflow-hidden p-0.5 relative;
 }
+
 .progress-bar-fill {
   @apply bg-gradient-to-r from-indigo-500 to-indigo-600 h-full rounded-full transition-all duration-500 relative flex items-center justify-end;
 }
+
 .progress-bar-fill.animated::after {
   content: '';
   @apply absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full animate-[shimmer_2s_infinite];
 }
+
 @keyframes shimmer {
   100% {
     transform: translateX(100%);
   }
 }
+
 .progress-val-bubble {
   @apply text-[9px] font-black text-white bg-indigo-900 border border-indigo-400 px-1.5 py-0.5 rounded-full absolute -top-1 right-1 scale-90;
 }
+
 .control-row {
   @apply flex gap-3;
 }

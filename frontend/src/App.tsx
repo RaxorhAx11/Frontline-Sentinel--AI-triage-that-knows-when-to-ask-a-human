@@ -15,11 +15,11 @@ export default function App() {
   const [stats, setStats] = useState<any>(null);
   const [messages, setMessages] = useState<IMessageDetail[]>([]);
   const [selectedMessage, setSelectedMessage] = useState<IMessageDetail | null>(null);
-  
+
   // Navigation and sub-tabs
   const [activeTab, setActiveTab] = useState<'dashboard' | 'messages' | 'reviews' | 'evaluation'>('dashboard');
   const [ingestionTab, setIngestionTab] = useState<'single' | 'bulk'>('single');
-  
+
   // Reviews audit selection
   const [selectedReviewCase, setSelectedReviewCase] = useState<any>(null);
   const [refreshReviewsToggle, setRefreshReviewsToggle] = useState(false);
@@ -150,7 +150,7 @@ export default function App() {
         const fullMsg = await api.getMessageById(messageId);
         setSelectedMessage(fullMsg);
         await Promise.all([fetchStats(), fetchMessages(page)]);
-      } catch {}
+      } catch { }
     } finally {
       setTriaging(false);
     }
@@ -186,44 +186,40 @@ export default function App() {
           <nav className="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
             <button
               onClick={() => setActiveTab('dashboard')}
-              className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-lg transition-all duration-200 cursor-pointer ${
-                activeTab === 'dashboard'
+              className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-lg transition-all duration-200 cursor-pointer ${activeTab === 'dashboard'
                   ? 'bg-indigo-600 text-white shadow-md'
                   : 'text-slate-400 hover:text-slate-200'
-              }`}
+                }`}
             >
               <LayoutDashboard size={14} />
               Dashboard
             </button>
             <button
               onClick={() => setActiveTab('messages')}
-              className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-lg transition-all duration-200 cursor-pointer ${
-                activeTab === 'messages'
+              className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-lg transition-all duration-200 cursor-pointer ${activeTab === 'messages'
                   ? 'bg-indigo-600 text-white shadow-md'
                   : 'text-slate-400 hover:text-slate-200'
-              }`}
+                }`}
             >
               <Inbox size={14} />
               Messages
             </button>
             <button
               onClick={() => setActiveTab('reviews')}
-              className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-lg transition-all duration-200 cursor-pointer ${
-                activeTab === 'reviews'
+              className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-lg transition-all duration-200 cursor-pointer ${activeTab === 'reviews'
                   ? 'bg-indigo-600 text-white shadow-md'
                   : 'text-slate-400 hover:text-slate-200'
-              }`}
+                }`}
             >
               <ShieldAlert size={14} />
               Human Review
             </button>
             <button
               onClick={() => setActiveTab('evaluation')}
-              className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-lg transition-all duration-200 cursor-pointer ${
-                activeTab === 'evaluation'
+              className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-lg transition-all duration-200 cursor-pointer ${activeTab === 'evaluation'
                   ? 'bg-indigo-600 text-white shadow-md'
                   : 'text-slate-400 hover:text-slate-200'
-              }`}
+                }`}
             >
               <Sliders size={14} />
               Evaluation
@@ -291,21 +287,19 @@ export default function App() {
               <div className="flex bg-slate-900/60 p-1 rounded-xl border border-slate-800">
                 <button
                   onClick={() => setIngestionTab('single')}
-                  className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all duration-200 cursor-pointer ${
-                    ingestionTab === 'single'
+                  className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all duration-200 cursor-pointer ${ingestionTab === 'single'
                       ? 'bg-indigo-600 text-white shadow-md'
                       : 'text-slate-400 hover:text-slate-200'
-                  }`}
+                    }`}
                 >
                   Single Message
                 </button>
                 <button
                   onClick={() => setIngestionTab('bulk')}
-                  className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all duration-200 cursor-pointer ${
-                    ingestionTab === 'bulk'
+                  className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all duration-200 cursor-pointer ${ingestionTab === 'bulk'
                       ? 'bg-indigo-600 text-white shadow-md'
                       : 'text-slate-400 hover:text-slate-200'
-                  }`}
+                    }`}
                 >
                   Bulk Dataset Ingest
                 </button>

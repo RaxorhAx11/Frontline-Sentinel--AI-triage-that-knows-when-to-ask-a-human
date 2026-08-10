@@ -9,7 +9,7 @@ export const DatasetTriage: React.FC<DatasetTriageProps> = ({ onImportComplete }
   const [file, setFile] = useState<File | null>(null);
   const [csvContent, setCsvContent] = useState<string>('');
   const [detectStats, setDetectStats] = useState<{ total: number } | null>(null);
-  
+
   const [importStats, setImportStats] = useState<{
     total: number;
     valid: number;
@@ -51,7 +51,7 @@ export const DatasetTriage: React.FC<DatasetTriageProps> = ({ onImportComplete }
     reader.onload = (event) => {
       const text = event.target?.result as string;
       setCsvContent(text);
-      
+
       // Rough line detection
       const lines = text.split(/\r?\n/).filter(line => line.trim().length > 0);
       setDetectStats({
@@ -116,12 +116,12 @@ export const DatasetTriage: React.FC<DatasetTriageProps> = ({ onImportComplete }
   // Poll status endpoint
   const pollStatus = () => {
     if (pollInterval.current) clearInterval(pollInterval.current);
-    
+
     const fetchStatus = async () => {
       try {
         const status = await api.getBulkTriageStatus();
         setTriageStatus(status);
-        
+
         // Stop polling if done or idle
         if (status.status === 'completed' || status.status === 'stopped' || status.status === 'idle') {
           if (pollInterval.current) {
@@ -244,7 +244,7 @@ export const DatasetTriage: React.FC<DatasetTriageProps> = ({ onImportComplete }
             </svg>
             <h3>Dataset Imported Successfully</h3>
           </div>
-          
+
           <div className="stats-grid">
             <div className="stat-box">
               <span className="stat-num">{importStats.total}</span>

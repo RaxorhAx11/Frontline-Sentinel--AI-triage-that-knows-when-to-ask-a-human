@@ -10,7 +10,9 @@
     "test:eval": "ts-node src/scripts/verify_phase5.ts",
     "verify:phase5": "ts-node src/scripts/verify_phase5.ts",
     "verify:e2e:phase5": "ts-node src/scripts/verify_e2e_phase5.ts",
-    "verify:phase6": "ts-node src/scripts/verify_phase6.ts"
+    "verify:phase6": "ts-node src/scripts/verify_phase6.ts",
+    "evaluate": "ts-node src/scripts/evaluate_cli.ts"
+
   },
   "dependencies": {
     "cors": "^2.8.5",

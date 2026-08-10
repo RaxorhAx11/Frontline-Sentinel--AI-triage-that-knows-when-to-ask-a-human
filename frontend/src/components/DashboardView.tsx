@@ -156,9 +156,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           const Icon = card.icon;
           const CardContent = (
             <div
-              className={`bg-slate-900/60 backdrop-blur-md border ${card.borderColor} rounded-xl p-5 transition-all hover:scale-[1.02] duration-300 ${card.glow || ''} ${
-                card.clickable ? 'cursor-pointer hover:border-amber-500/40 group' : ''
-              } h-full flex flex-col justify-between`}
+              className={`bg-slate-900/60 backdrop-blur-md border ${card.borderColor} rounded-xl p-5 transition-all hover:scale-[1.02] duration-300 ${card.glow || ''} ${card.clickable ? 'cursor-pointer hover:border-amber-500/40 group' : ''
+                } h-full flex flex-col justify-between`}
             >
               <div className="flex items-center justify-between">
                 <span className="text-slate-400 text-xs font-semibold uppercase tracking-wider group-hover:text-amber-300 transition-colors">

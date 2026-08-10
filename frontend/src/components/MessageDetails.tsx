@@ -277,8 +277,8 @@ export const MessageDetails: React.FC<MessageDetailsProps> = ({
                       {decision.estimatedCost === 0
                         ? 'Free tier / $0 API cost'
                         : decision.estimatedCost !== null && decision.estimatedCost !== undefined
-                        ? `$${decision.estimatedCost.toFixed(6)}`
-                        : 'N/A'}
+                          ? `$${decision.estimatedCost.toFixed(6)}`
+                          : 'N/A'}
                     </span>
                   </div>
                 </div>

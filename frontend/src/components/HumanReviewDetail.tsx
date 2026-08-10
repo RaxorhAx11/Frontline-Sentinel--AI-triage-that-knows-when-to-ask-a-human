@@ -50,7 +50,7 @@ export const HumanReviewDetail: React.FC<CaseDetailProps> = ({
   const [suggestedAction, setSuggestedAction] = useState(caseItem.suggestedAction);
   const [needsHuman, setNeedsHuman] = useState(caseItem.needsHuman);
   const [notes, setNotes] = useState('');
-  
+
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -216,22 +216,20 @@ export const HumanReviewDetail: React.FC<CaseDetailProps> = ({
                 <button
                   type="button"
                   onClick={() => setDecisionType('accepted')}
-                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all duration-200 cursor-pointer ${
-                    decisionType === 'accepted'
+                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all duration-200 cursor-pointer ${decisionType === 'accepted'
                       ? 'bg-emerald-600 text-white shadow-md'
                       : 'text-slate-400 hover:text-slate-200'
-                  }`}
+                    }`}
                 >
                   Accept AI Suggested Decision
                 </button>
                 <button
                   type="button"
                   onClick={() => setDecisionType('overridden')}
-                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all duration-200 cursor-pointer ${
-                    decisionType === 'overridden'
+                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all duration-200 cursor-pointer ${decisionType === 'overridden'
                       ? 'bg-indigo-650 text-white shadow-md'
                       : 'text-slate-400 hover:text-slate-200'
-                  }`}
+                    }`}
                 >
                   Override Classification
                 </button>

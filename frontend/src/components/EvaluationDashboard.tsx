@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../api/client';
-import { 
-  CheckCircle2, 
-  XCircle, 
-  AlertTriangle, 
-  RefreshCw, 
-  Clock, 
-  Sliders, 
-  ShieldAlert, 
+import {
+  CheckCircle2,
+  XCircle,
+  AlertTriangle,
+  RefreshCw,
+  Clock,
+  Sliders,
+  ShieldAlert,
   Database,
   ThumbsUp,
   ThumbsDown,
@@ -19,7 +19,7 @@ export const EvaluationDashboard: React.FC = () => {
   const [evaluations, setEvaluations] = useState<any[]>([]);
   const [metricsData, setMetricsData] = useState<any>(null);
   const [selectedEval, setSelectedEval] = useState<any>(null);
-  
+
   // Ground Truth Form State
   const [gtCategory, setGtCategory] = useState<string>('');
   const [gtPriority, setGtPriority] = useState<string>('');
@@ -74,13 +74,13 @@ export const EvaluationDashboard: React.FC = () => {
   // Open Form
   const handleOpenLabelPanel = (item: any) => {
     setSelectedEval(item);
-    
+
     // Clear pre-selections to prevent AI bias.
     // If the item has already been labeled by human, load their choices.
     // Otherwise, start clean/empty so human has to select intentionally.
     const gt = item.groundTruth;
     const isLabeled = gt && gt.createdAt;
-    
+
     if (isLabeled) {
       setGtCategory(gt.groundTruthCategory);
       setGtPriority(gt.groundTruthPriority);
@@ -99,7 +99,7 @@ export const EvaluationDashboard: React.FC = () => {
   const handleSaveGroundTruth = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedEval) return;
-    
+
     if (!gtCategory) {
       setError('Please select a ground-truth Category.');
       return;
@@ -152,13 +152,13 @@ export const EvaluationDashboard: React.FC = () => {
   const confidenceStats = (() => {
     let highConfIncorrect = 0;
     let lowConfCorrect = 0;
-    
+
     evaluations.forEach((e) => {
       if (!e.aiDecision) return;
       const isCorrect = e.comparison.overallCorrect;
       const isHighConf = e.aiDecision.confidence >= 0.80;
       const isLowConf = e.aiDecision.confidence <= 0.50;
-      
+
       if (isHighConf && !isCorrect) highConfIncorrect++;
       if (isLowConf && isCorrect) lowConfCorrect++;
     });
@@ -283,12 +283,12 @@ export const EvaluationDashboard: React.FC = () => {
             <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Human Recall (Escalation)</span>
             <div className="flex items-baseline justify-between mt-3">
               <span className={`text-3xl font-black tracking-tight ${getRecallColor(metrics.humanEscalationRecall)}`}>
-                {typeof metrics.humanEscalationRecall === 'number' 
-                  ? formatPercent(metrics.humanEscalationRecall) 
+                {typeof metrics.humanEscalationRecall === 'number'
+                  ? formatPercent(metrics.humanEscalationRecall)
                   : 'N/A'}
               </span>
               <span className="text-xs text-slate-400 font-semibold bg-slate-950/60 px-2 py-1 rounded border border-slate-800">
-                {typeof metrics.humanEscalationRecall === 'number' 
+                {typeof metrics.humanEscalationRecall === 'number'
                   ? `${Math.round(metrics.humanEscalationRecall * metrics.evaluatedCount)} escalated`
                   : 'No Human Cases'}
               </span>
@@ -554,7 +554,7 @@ export const EvaluationDashboard: React.FC = () => {
               <ShieldAlert size={16} className="text-indigo-400" />
               Confusion & Disagreement Breakdown
             </h3>
-            
+
             <div className="grid grid-cols-3 gap-3">
               <div className="bg-slate-950/60 p-4 border border-slate-800 rounded-xl text-center">
                 <span className="text-xl font-extrabold text-rose-400">
@@ -653,7 +653,25 @@ export const EvaluationDashboard: React.FC = () => {
                 )}
               </span>
             </div>
+
+            <div className="p-3.5 bg-indigo-500/5 border border-indigo-500/10 rounded-xl text-xs space-y-1.5">
+              <span className="font-extrabold text-indigo-400 block uppercase tracking-wider text-[10px]">
+                💡 Practical Optimization Suggestion
+              </span>
+              <span className="font-semibold text-slate-300 text-[11px] block">
+                Pre-LLM Guardrail Filtering
+              </span>
+              <p className="text-[10px] text-slate-400 leading-relaxed font-medium">
+                By running our cheap regex and repetitive character filters (in guardrail service) <strong className="text-indigo-300">before</strong> calling the Gemini API, we can bypass the LLM for garbage inputs (like "asdfghjkl") and obvious prompt injections.
+              </p>
+              <div className="grid grid-cols-3 gap-2 text-[9px] font-bold text-emerald-400 pt-1">
+                <span>⏱️ Latency: &lt;5ms</span>
+                <span>💰 Cost: $0.00</span>
+                <span>🏷️ Tokens: 0</span>
+              </div>
+            </div>
           </div>
+
         </div>
       )}
 
@@ -726,7 +744,7 @@ export const EvaluationDashboard: React.FC = () => {
 
               return sortedFailures.map((item) => {
                 const isFalseNegative = item.groundTruth.groundTruthNeedsHuman && !item.aiDecision?.needsHuman;
-                
+
                 const getErrorTypes = () => {
                   const errs = [];
                   if (item.aiDecision) {
@@ -746,13 +764,12 @@ export const EvaluationDashboard: React.FC = () => {
                 };
 
                 return (
-                  <div 
-                    key={item.messageId} 
-                    className={`p-4 bg-slate-950/80 border rounded-xl space-y-3 transition-all ${
-                      isFalseNegative 
-                        ? 'border-rose-500/30 shadow-[0_0_15px_rgba(239,68,68,0.05)]' 
+                  <div
+                    key={item.messageId}
+                    className={`p-4 bg-slate-950/80 border rounded-xl space-y-3 transition-all ${isFalseNegative
+                        ? 'border-rose-500/30 shadow-[0_0_15px_rgba(239,68,68,0.05)]'
                         : 'border-slate-800'
-                    }`}
+                      }`}
                   >
                     <div className="flex justify-between items-center">
                       <span className="text-[9px] text-slate-500 font-mono font-bold bg-slate-900 border border-slate-800 px-2 py-0.5 rounded uppercase">
