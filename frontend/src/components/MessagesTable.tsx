@@ -29,18 +29,18 @@ export const MessagesTable: React.FC<MessagesTableProps> = ({
   onSelectMessage,
 }) => {
   const getStatusBadge = (status: string) => {
-    const base = 'px-2.5 py-1 rounded-full text-xs font-semibold border ';
+    const base = 'inline-block whitespace-nowrap px-2.5 py-1 rounded-full text-xs font-semibold border ';
     switch (status) {
       case 'completed':
-        return `${base} bg-emerald-500/10 text-emerald-400 border-emerald-500/20`;
+        return `${base} bg-zinc-900 text-zinc-300 border-zinc-800`;
       case 'human_review':
-        return `${base} bg-amber-500/10 text-amber-400 border-amber-500/20`;
+        return `${base} bg-white text-zinc-950 border-white`;
       case 'failed':
-        return `${base} bg-rose-500/10 text-rose-400 border-rose-500/20`;
+        return `${base} border-dashed border-zinc-700 text-zinc-400 bg-transparent`;
       case 'processing':
-        return `${base} bg-blue-500/10 text-blue-400 border-blue-500/20 animate-pulse`;
+        return `${base} bg-zinc-800 text-white border-zinc-700 animate-pulse`;
       default:
-        return `${base} bg-slate-500/10 text-slate-400 border-slate-500/20`;
+        return `${base} bg-zinc-900/50 text-zinc-400 border-zinc-800`;
     }
   };
 
@@ -48,40 +48,40 @@ export const MessagesTable: React.FC<MessagesTableProps> = ({
     const base = 'px-2 py-0.5 rounded text-xs font-bold border ';
     switch (priority) {
       case 'P0':
-        return `${base} bg-rose-950/50 text-rose-400 border-rose-500/30`;
+        return `${base} bg-white text-zinc-950 border-white`;
       case 'P1':
-        return `${base} bg-orange-950/50 text-orange-400 border-orange-500/30`;
+        return `${base} bg-zinc-950 text-white border-zinc-200`;
       case 'P2':
-        return `${base} bg-yellow-950/50 text-yellow-400 border-yellow-500/30`;
+        return `${base} bg-zinc-950 text-zinc-300 border-zinc-700`;
       case 'P3':
-        return `${base} bg-slate-800/50 text-slate-400 border-slate-700/30`;
+        return `${base} bg-zinc-950 text-zinc-500 border-zinc-800`;
       default:
-        return `${base} bg-slate-800/50 text-slate-400 border-slate-700/30`;
+        return `${base} bg-zinc-950 text-zinc-500 border-zinc-800`;
     }
   };
 
   const getConfidenceColor = (conf: number) => {
-    if (conf >= 0.85) return 'bg-emerald-500';
-    if (conf >= 0.70) return 'bg-yellow-500';
-    return 'bg-rose-500';
+    if (conf >= 0.85) return 'bg-white';
+    if (conf >= 0.70) return 'bg-zinc-400';
+    return 'bg-zinc-700';
   };
 
   return (
-    <div className="bg-slate-900/60 backdrop-blur-md border border-slate-800 rounded-xl overflow-hidden shadow-xl">
-      <div className="px-6 py-4 border-b border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="bg-zinc-900/40 backdrop-blur-md border border-zinc-800 rounded-xl overflow-hidden shadow-xl">
+      <div className="px-6 py-4 border-b border-zinc-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h3 className="text-lg font-bold text-white">Ingestion & Classification Logs</h3>
-          {loading && <span className="text-indigo-400 text-xs font-semibold animate-pulse block mt-1">Fetching records...</span>}
+          {loading && <span className="text-white text-xs font-semibold animate-pulse block mt-1">Fetching records...</span>}
         </div>
 
         {/* Filters Panel */}
         <div className="flex flex-wrap items-center gap-3 text-xs">
           <div className="flex flex-col gap-1">
-            <label className="text-slate-500 font-bold uppercase text-[9px]">Status</label>
+            <label className="text-zinc-500 font-bold uppercase text-[9px]">Status</label>
             <select
               value={statusFilter}
               onChange={(e) => onFilterChange('status', e.target.value)}
-              className="bg-slate-950 border border-slate-800 text-slate-300 rounded px-2.5 py-1.5 focus:outline-none focus:border-indigo-500 font-semibold"
+              className="bg-zinc-950 border border-zinc-800 text-zinc-300 rounded-lg px-3 py-1.5 focus:outline-none focus:border-white focus:ring-1 focus:ring-white font-semibold cursor-pointer transition-all"
             >
               <option value="all">All Statuses</option>
               <option value="pending">Pending</option>
@@ -94,11 +94,11 @@ export const MessagesTable: React.FC<MessagesTableProps> = ({
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-slate-500 font-bold uppercase text-[9px]">Priority</label>
+            <label className="text-zinc-500 font-bold uppercase text-[9px]">Priority</label>
             <select
               value={priorityFilter}
               onChange={(e) => onFilterChange('priority', e.target.value)}
-              className="bg-slate-950 border border-slate-800 text-slate-300 rounded px-2.5 py-1.5 focus:outline-none focus:border-indigo-500 font-semibold"
+              className="bg-zinc-950 border border-zinc-800 text-zinc-300 rounded-lg px-3 py-1.5 focus:outline-none focus:border-white focus:ring-1 focus:ring-white font-semibold cursor-pointer transition-all"
             >
               <option value="all">All Priorities</option>
               <option value="P0">P0 (Critical)</option>
@@ -109,11 +109,11 @@ export const MessagesTable: React.FC<MessagesTableProps> = ({
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-slate-500 font-bold uppercase text-[9px]">Category</label>
+            <label className="text-zinc-500 font-bold uppercase text-[9px]">Category</label>
             <select
               value={categoryFilter}
               onChange={(e) => onFilterChange('category', e.target.value)}
-              className="bg-slate-950 border border-slate-800 text-slate-300 rounded px-2.5 py-1.5 focus:outline-none focus:border-indigo-500 font-semibold capitalize"
+              className="bg-zinc-950 border border-zinc-800 text-zinc-300 rounded-lg px-3 py-1.5 focus:outline-none focus:border-white focus:ring-1 focus:ring-white font-semibold capitalize cursor-pointer transition-all"
             >
               <option value="all">All Categories</option>
               <option value="billing">Billing</option>
@@ -135,7 +135,7 @@ export const MessagesTable: React.FC<MessagesTableProps> = ({
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="border-b border-slate-800 bg-slate-950/50 text-slate-400 text-xs uppercase font-bold tracking-wider">
+            <tr className="border-b border-zinc-800 bg-zinc-950/50 text-zinc-400 text-xs uppercase font-bold tracking-wider">
               <th className="py-4 px-6">Support Ticket (Preview)</th>
               <th className="py-4 px-6">Status</th>
               <th className="py-4 px-6">Category</th>
@@ -145,10 +145,10 @@ export const MessagesTable: React.FC<MessagesTableProps> = ({
               <th className="py-4 px-6 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800">
+          <tbody className="divide-y divide-zinc-900">
             {data.length === 0 ? (
               <tr>
-                <td colSpan={7} className="py-8 text-center text-slate-500 text-sm">
+                <td colSpan={7} className="py-8 text-center text-zinc-500 text-sm">
                   No tickets logged yet. Submit a customer request to populate data.
                 </td>
               </tr>
@@ -161,10 +161,10 @@ export const MessagesTable: React.FC<MessagesTableProps> = ({
                 return (
                   <tr
                     key={msg._id}
-                    className="hover:bg-slate-800/30 transition-colors group cursor-pointer"
+                    className="hover:bg-zinc-900/40 transition-colors group cursor-pointer"
                     onClick={() => onSelectMessage(msg)}
                   >
-                    <td className="py-4 px-6 font-medium text-slate-300 group-hover:text-white max-w-xs truncate">
+                    <td className="py-4 px-6 font-medium text-zinc-300 group-hover:text-white max-w-xs truncate">
                       {textPreview}
                     </td>
                     <td className="py-4 px-6">
@@ -172,7 +172,7 @@ export const MessagesTable: React.FC<MessagesTableProps> = ({
                         {msg.status.replace('_', ' ')}
                       </span>
                     </td>
-                    <td className="py-4 px-6 text-slate-400 font-semibold capitalize text-sm">
+                    <td className="py-4 px-6 text-zinc-400 font-semibold capitalize text-sm">
                       {decision?.category ? decision.category.replace('_', ' ') : '—'}
                     </td>
                     <td className="py-4 px-6">
@@ -187,13 +187,13 @@ export const MessagesTable: React.FC<MessagesTableProps> = ({
                     <td className="py-4 px-6 min-w-[120px]">
                       {decision ? (
                         <div className="flex items-center gap-2">
-                          <div className="w-16 bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                          <div className="w-16 bg-zinc-950 rounded-full h-1.5 overflow-hidden">
                             <div
                               className={`h-1.5 rounded-full ${getConfidenceColor(decision.confidence)}`}
                               style={{ width: `${decision.confidence * 100}%` }}
                             />
                           </div>
-                          <span className="text-xs font-semibold text-slate-300">
+                          <span className="text-xs font-semibold text-zinc-300">
                             {Math.round(decision.confidence * 100)}%
                           </span>
                         </div>
@@ -203,12 +203,12 @@ export const MessagesTable: React.FC<MessagesTableProps> = ({
                     </td>
                     <td className="py-4 px-6 text-center">
                       {decision?.needsHuman ? (
-                        <span className="inline-flex items-center gap-1 bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded text-xs font-semibold border border-amber-500/20">
+                        <span className="inline-flex items-center gap-1 bg-white text-zinc-950 px-2 py-0.5 rounded text-xs font-semibold border border-white">
                           <ShieldAlert size={12} />
                           Human Escalated
                         </span>
                       ) : (
-                        <span className="text-slate-600 text-xs">—</span>
+                        <span className="text-zinc-600 text-xs">—</span>
                       )}
                     </td>
                     <td className="py-4 px-6 text-right">
@@ -217,7 +217,7 @@ export const MessagesTable: React.FC<MessagesTableProps> = ({
                           e.stopPropagation();
                           onSelectMessage(msg);
                         }}
-                        className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
+                        className="p-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white transition-colors"
                       >
                         <Eye size={14} />
                       </button>
@@ -232,23 +232,23 @@ export const MessagesTable: React.FC<MessagesTableProps> = ({
 
       {/* Pagination controls */}
       {totalPages > 1 && (
-        <div className="px-6 py-4 border-t border-slate-800 flex items-center justify-between bg-slate-950/20">
-          <span className="text-slate-500 text-xs">
-            Showing Page <span className="text-slate-300 font-semibold">{page}</span> of{' '}
-            <span className="text-slate-300 font-semibold">{totalPages}</span>
+        <div className="px-6 py-4 border-t border-zinc-800 flex items-center justify-between bg-zinc-950/20">
+          <span className="text-zinc-500 text-xs">
+            Showing Page <span className="text-zinc-300 font-semibold">{page}</span> of{' '}
+            <span className="text-zinc-300 font-semibold">{totalPages}</span>
           </span>
           <div className="flex items-center gap-2">
             <button
               onClick={() => onPageChange(page - 1)}
               disabled={page === 1}
-              className="p-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-white disabled:opacity-40 disabled:hover:text-slate-400 transition-colors"
+              className="p-1.5 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-400 hover:text-white disabled:opacity-40 disabled:hover:text-zinc-500 transition-colors cursor-pointer"
             >
               <ChevronLeft size={16} />
             </button>
             <button
               onClick={() => onPageChange(page + 1)}
               disabled={page === totalPages}
-              className="p-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-white disabled:opacity-40 disabled:hover:text-slate-400 transition-colors"
+              className="p-1.5 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-400 hover:text-white disabled:opacity-40 disabled:hover:text-zinc-500 transition-colors cursor-pointer"
             >
               <ChevronRight size={16} />
             </button>

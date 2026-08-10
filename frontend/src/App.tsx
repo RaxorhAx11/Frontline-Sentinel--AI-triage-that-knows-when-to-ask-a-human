@@ -163,32 +163,32 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col selection:bg-indigo-500/30 text-slate-100 font-sans antialiased">
+    <div className="min-h-screen bg-zinc-950 flex flex-col selection:bg-zinc-800 text-zinc-100 font-sans antialiased">
       {/* Header Navigation */}
-      <header className="border-b border-slate-900 bg-slate-900/40 backdrop-blur-md sticky top-0 z-40">
+      <header className="border-b border-zinc-900 bg-zinc-950/40 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <div className="bg-indigo-600 p-2 rounded-xl shadow-[0_0_15px_rgba(99,102,241,0.3)]">
-              <Shield className="text-white" size={20} />
+            <div className="bg-white p-2 rounded-xl shadow-[0_0_15px_rgba(255,255,255,0.15)]">
+              <Shield className="text-zinc-950" size={20} />
             </div>
             <div>
               <h1 className="text-lg font-black tracking-tight text-white m-0 leading-none">
                 FRONTLINE SENTINEL
               </h1>
-              <span className="text-slate-500 text-[9px] uppercase font-bold tracking-widest block mt-1">
+              <span className="text-zinc-505 text-[9px] uppercase font-bold tracking-widest block mt-1">
                 AI Triage & Triage Safety System
               </span>
             </div>
           </div>
 
           {/* Navigation Tabs */}
-          <nav className="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
+          <nav className="flex bg-zinc-900 p-1 rounded-xl border border-zinc-800">
             <button
               onClick={() => setActiveTab('dashboard')}
               className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-lg transition-all duration-200 cursor-pointer ${activeTab === 'dashboard'
-                  ? 'bg-indigo-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-white text-zinc-950 shadow-md'
+                : 'text-zinc-400 hover:text-white'
                 }`}
             >
               <LayoutDashboard size={14} />
@@ -197,8 +197,8 @@ export default function App() {
             <button
               onClick={() => setActiveTab('messages')}
               className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-lg transition-all duration-200 cursor-pointer ${activeTab === 'messages'
-                  ? 'bg-indigo-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-white text-zinc-950 shadow-md'
+                : 'text-zinc-400 hover:text-white'
                 }`}
             >
               <Inbox size={14} />
@@ -207,8 +207,8 @@ export default function App() {
             <button
               onClick={() => setActiveTab('reviews')}
               className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-lg transition-all duration-200 cursor-pointer ${activeTab === 'reviews'
-                  ? 'bg-indigo-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-white text-zinc-950 shadow-md'
+                : 'text-zinc-400 hover:text-white'
                 }`}
             >
               <ShieldAlert size={14} />
@@ -217,8 +217,8 @@ export default function App() {
             <button
               onClick={() => setActiveTab('evaluation')}
               className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-lg transition-all duration-200 cursor-pointer ${activeTab === 'evaluation'
-                  ? 'bg-indigo-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-white text-zinc-950 shadow-md'
+                : 'text-zinc-400 hover:text-white'
                 }`}
             >
               <Sliders size={14} />
@@ -228,17 +228,17 @@ export default function App() {
 
           {/* Status indicators */}
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-full px-3 py-1.5 text-xs font-semibold text-slate-400">
-              <Server size={12} className="text-slate-500" />
+            <div className="flex items-center gap-2 bg-zinc-900 border border-zinc-800 rounded-full px-3 py-1.5 text-xs font-semibold text-zinc-400">
+              <Server size={12} className="text-zinc-500" />
               <span>System:</span>
               {apiOnline === null ? (
-                <span className="flex h-2 w-2 rounded-full bg-slate-600 animate-pulse" />
+                <span className="flex h-2 w-2 rounded-full bg-zinc-700 animate-pulse" />
               ) : apiOnline ? (
-                <span className="flex h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                <span className="flex h-2 w-2 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
               ) : (
-                <span className="flex h-2 w-2 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
+                <span className="flex h-2 w-2 rounded-full bg-transparent border border-zinc-650 animate-pulse" />
               )}
-              <span className="text-slate-350 font-bold">
+              <span className="text-zinc-350 font-bold">
                 {apiOnline === null ? 'Checking...' : apiOnline ? 'Active' : 'Offline'}
               </span>
             </div>
@@ -284,12 +284,12 @@ export default function App() {
 
             {/* Side Ingestion Panel */}
             <div className="space-y-6">
-              <div className="flex bg-slate-900/60 p-1 rounded-xl border border-slate-800">
+              <div className="flex bg-zinc-900 p-1 rounded-xl border border-zinc-800">
                 <button
                   onClick={() => setIngestionTab('single')}
                   className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all duration-200 cursor-pointer ${ingestionTab === 'single'
-                      ? 'bg-indigo-600 text-white shadow-md'
-                      : 'text-slate-400 hover:text-slate-200'
+                    ? 'bg-white text-zinc-950 shadow-md font-bold'
+                    : 'text-zinc-400 hover:text-white'
                     }`}
                 >
                   Single Message
@@ -297,8 +297,8 @@ export default function App() {
                 <button
                   onClick={() => setIngestionTab('bulk')}
                   className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all duration-200 cursor-pointer ${ingestionTab === 'bulk'
-                      ? 'bg-indigo-600 text-white shadow-md'
-                      : 'text-slate-400 hover:text-slate-200'
+                    ? 'bg-white text-zinc-950 shadow-md font-bold'
+                    : 'text-zinc-400 hover:text-white'
                     }`}
                 >
                   Bulk Dataset Ingest
@@ -344,12 +344,13 @@ export default function App() {
       )}
 
       {/* Footer */}
-      <footer className="border-t border-slate-900 bg-slate-950 py-6 mt-12">
-        <div className="max-w-7xl mx-auto px-6 flex justify-between items-center text-xs text-slate-600 font-semibold">
-          <span>Frontline Sentinel — Triage Control Center © 2026.</span>
-          <span>Demo Ingestion Readiness — Active</span>
+      <footer className="border-t border-zinc-900 bg-zinc-950 py-6 mt-12">
+        <div className="max-w-7xl mx-auto px-6 flex justify-between items-center text-xs text-zinc-650 font-semibold">
+          <span>Frontline Sentinel</span>
+          <span>Active</span>
         </div>
       </footer>
     </div>
   );
 }
+

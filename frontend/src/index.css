@@ -2,7 +2,7 @@
 
 @layer base {
   body {
-    @apply bg-slate-950 text-slate-100 min-h-screen font-sans antialiased;
+    @apply bg-zinc-950 text-zinc-100 min-h-screen font-sans antialiased;
   }
 }
 
@@ -13,21 +13,21 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.5);
+  background: rgba(9, 9, 11, 0.5);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(99, 102, 241, 0.3);
+  background: rgba(255, 255, 255, 0.15);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 102, 241, 0.5);
+  background: rgba(255, 255, 255, 0.3);
 }
 
 /* Bulk Dataset Ingestion & Triage Styles */
 .dataset-triage-card {
-  @apply bg-slate-900/60 backdrop-blur-md border border-slate-800 rounded-xl p-6 shadow-xl space-y-6;
+  @apply bg-zinc-900/40 backdrop-blur-md border border-zinc-900 rounded-xl p-6 shadow-xl space-y-6;
 }
 
 .section-title {
@@ -35,7 +35,7 @@
 }
 
 .section-subtitle {
-  @apply text-slate-400 text-xs mt-1.5 leading-relaxed;
+  @apply text-zinc-400 text-xs mt-1.5 leading-relaxed;
 }
 
 .upload-container {
@@ -43,7 +43,7 @@
 }
 
 .file-dropzone {
-  @apply border-2 border-dashed border-slate-800 hover:border-indigo-500/50 rounded-xl p-6 transition-all duration-300 bg-slate-950/40 cursor-pointer;
+  @apply border-2 border-dashed border-zinc-800 hover:border-white/50 rounded-xl p-6 transition-all duration-300 bg-zinc-950/40 cursor-pointer;
 }
 
 .file-input {
@@ -51,7 +51,7 @@
 }
 
 .dropzone-label {
-  @apply flex flex-col items-center justify-center gap-3 text-slate-400 cursor-pointer;
+  @apply flex flex-col items-center justify-center gap-3 text-zinc-400 cursor-pointer;
 }
 
 .file-info-selected {
@@ -59,23 +59,23 @@
 }
 
 .file-name {
-  @apply text-sm font-bold text-slate-200 truncate max-w-xs;
+  @apply text-sm font-bold text-zinc-200 truncate max-w-xs;
 }
 
 .file-size {
-  @apply text-xs text-slate-500 mt-1;
+  @apply text-xs text-zinc-500 mt-1;
 }
 
 .dropzone-text {
-  @apply text-xs text-slate-400 text-center;
+  @apply text-xs text-zinc-400 text-center;
 }
 
 .highlight-text {
-  @apply text-indigo-400 font-semibold;
+  @apply text-white font-bold;
 }
 
 .detect-summary {
-  @apply flex items-center justify-between p-3.5 bg-slate-950/80 rounded-xl border border-slate-800;
+  @apply flex items-center justify-between p-3.5 bg-zinc-950/80 rounded-xl border border-zinc-900;
 }
 
 .summary-item {
@@ -83,11 +83,11 @@
 }
 
 .summary-label {
-  @apply text-slate-400;
+  @apply text-zinc-400;
 }
 
 .summary-value {
-  @apply font-extrabold text-slate-200;
+  @apply font-extrabold text-zinc-200;
 }
 
 .btn-bulk-action {
@@ -99,7 +99,7 @@
 }
 
 .success-banner {
-  @apply flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl p-4;
+  @apply flex items-center gap-3 bg-zinc-900 border border-zinc-800 text-white rounded-xl p-4;
 }
 
 .success-banner h3 {
@@ -107,7 +107,7 @@
 }
 
 .success-icon {
-  @apply text-emerald-400 shrink-0;
+  @apply text-white shrink-0;
 }
 
 .stats-grid {
@@ -115,67 +115,67 @@
 }
 
 .stat-box {
-  @apply bg-slate-950/60 border border-slate-800 rounded-xl p-3 flex flex-col items-center justify-center text-center transition-all duration-300;
+  @apply bg-zinc-950/60 border border-zinc-900 rounded-xl p-3 flex flex-col items-center justify-center text-center transition-all duration-300;
 }
 
 .stat-box:hover {
-  @apply border-slate-700/50 shadow-md;
+  @apply border-zinc-800/80 shadow-md;
 }
 
 .stat-num {
-  @apply text-lg font-black text-slate-200 tracking-tight;
+  @apply text-lg font-black text-zinc-200 tracking-tight;
 }
 
 .stat-name {
-  @apply text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-1;
+  @apply text-[10px] text-zinc-500 font-bold uppercase tracking-wider mt-1;
 }
 
 .status-completed .stat-num {
-  @apply text-emerald-400;
+  @apply text-white;
 }
 
 .status-completed {
-  @apply bg-emerald-500/5 border-emerald-500/10;
+  @apply bg-zinc-900/40 border-zinc-800/80;
 }
 
 .status-failed .stat-num {
-  @apply text-rose-400;
+  @apply text-zinc-400;
 }
 
 .status-failed {
-  @apply bg-rose-500/5 border-rose-500/10;
+  @apply border-dashed border-zinc-800 bg-transparent;
 }
 
 .status-warning .stat-num {
-  @apply text-amber-400;
+  @apply text-zinc-300;
 }
 
 .status-warning {
-  @apply bg-amber-500/5 border-amber-500/10;
+  @apply border border-zinc-800 bg-zinc-950/40;
 }
 
 .status-processing .stat-num {
-  @apply text-blue-400;
+  @apply text-white;
 }
 
 .status-processing {
-  @apply bg-blue-500/5 border-blue-500/10;
+  @apply bg-zinc-900 border-zinc-800 animate-pulse;
 }
 
 .status-human .stat-num {
-  @apply text-orange-400;
+  @apply text-white;
 }
 
 .status-human {
-  @apply bg-orange-500/5 border-orange-500/10;
+  @apply bg-zinc-800 border-zinc-700;
 }
 
 .status-invalid .stat-num {
-  @apply text-purple-400;
+  @apply text-zinc-500;
 }
 
 .status-invalid {
-  @apply bg-purple-500/5 border-purple-500/10;
+  @apply border-dashed border-zinc-900 bg-transparent opacity-60;
 }
 
 .action-row {
@@ -184,27 +184,27 @@
 
 .action-row .btn,
 .control-row .btn {
-  @apply flex-1 py-2.5 text-xs font-bold rounded-xl transition-all duration-200;
+  @apply flex-1 py-2.5 text-xs font-bold rounded-xl transition-all duration-200 cursor-pointer;
 }
 
 .btn-primary {
-  @apply bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/20 active:scale-95;
+  @apply bg-white hover:bg-zinc-200 text-zinc-950 shadow-md active:scale-95;
 }
 
 .btn-secondary {
-  @apply bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/50 active:scale-95;
+  @apply bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 active:scale-95;
 }
 
 .btn-success {
-  @apply bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/20 active:scale-95;
+  @apply bg-white hover:bg-zinc-200 text-zinc-950 border border-white active:scale-95;
 }
 
 .btn-warning {
-  @apply bg-amber-600 hover:bg-amber-500 text-white shadow-lg shadow-amber-600/20 active:scale-95;
+  @apply bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700 active:scale-95;
 }
 
 .btn-danger {
-  @apply bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-600/20 active:scale-95;
+  @apply bg-zinc-950 hover:bg-zinc-900 text-zinc-400 border border-zinc-800 active:scale-95;
 }
 
 .triage-progress-panel {
@@ -228,36 +228,36 @@
 }
 
 .status-badge.status-running {
-  @apply bg-blue-500/10 text-blue-400 border-blue-500/20 animate-pulse;
+  @apply bg-zinc-900 text-white border-zinc-800 animate-pulse;
 }
 
 .status-badge.status-paused {
-  @apply bg-amber-500/10 text-amber-400 border-amber-500/20;
+  @apply bg-zinc-900/60 text-zinc-400 border-zinc-900;
 }
 
 .status-badge.status-stopped {
-  @apply bg-rose-500/10 text-rose-400 border-rose-500/20;
+  @apply border border-dashed border-zinc-800 text-zinc-400;
 }
 
 .status-badge.status-completed {
-  @apply bg-emerald-500/10 text-emerald-400 border-emerald-500/20;
+  @apply bg-zinc-900 text-white border-zinc-800;
 }
 
 .progress-text {
-  @apply text-xs font-semibold text-slate-400;
+  @apply text-xs font-semibold text-zinc-400;
 }
 
 .progress-bar-container {
-  @apply bg-slate-950 border border-slate-800 rounded-full h-4 overflow-hidden p-0.5 relative;
+  @apply bg-zinc-950 border border-zinc-900 rounded-full h-4 overflow-hidden p-0.5 relative;
 }
 
 .progress-bar-fill {
-  @apply bg-gradient-to-r from-indigo-500 to-indigo-600 h-full rounded-full transition-all duration-500 relative flex items-center justify-end;
+  @apply bg-white h-full rounded-full transition-all duration-500 relative flex items-center justify-end;
 }
 
 .progress-bar-fill.animated::after {
   content: '';
-  @apply absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full animate-[shimmer_2s_infinite];
+  @apply absolute inset-0 bg-gradient-to-r from-black/0 via-black/10 to-black/0 -translate-x-full animate-[shimmer_2s_infinite];
 }
 
 @keyframes shimmer {
@@ -267,7 +267,7 @@
 }
 
 .progress-val-bubble {
-  @apply text-[9px] font-black text-white bg-indigo-900 border border-indigo-400 px-1.5 py-0.5 rounded-full absolute -top-1 right-1 scale-90;
+  @apply text-[9px] font-black text-white bg-zinc-900 border border-zinc-700 px-1.5 py-0.5 rounded-full absolute -top-1 right-1 scale-90;
 }
 
 .control-row {

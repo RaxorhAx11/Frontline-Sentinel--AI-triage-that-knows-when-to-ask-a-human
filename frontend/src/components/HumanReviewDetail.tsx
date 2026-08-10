@@ -109,116 +109,117 @@ export const HumanReviewDetail: React.FC<CaseDetailProps> = ({
   const getPriorityColor = (prio: string) => {
     switch (prio) {
       case 'P0':
-        return 'text-rose-400 bg-rose-500/10 border-rose-500/20';
+        return 'text-zinc-950 bg-white border-white font-extrabold';
       case 'P1':
-        return 'text-orange-400 bg-orange-500/10 border-orange-500/20';
+        return 'text-white bg-zinc-950 border-zinc-200 font-bold';
       case 'P2':
-        return 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20';
+        return 'text-zinc-300 bg-zinc-950 border-zinc-700 font-semibold';
       default:
-        return 'text-slate-400 bg-slate-500/10 border-slate-500/20';
+        return 'text-zinc-500 bg-zinc-950 border-zinc-800';
     }
   };
 
   const hasBeenReviewed = caseItem.review !== null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-end bg-slate-950/70 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-end bg-zinc-950/80 backdrop-blur-sm">
       <div className="absolute inset-0" onClick={onClose} />
 
-      <div className="relative w-full max-w-2xl h-full bg-slate-900 border-l border-slate-800 flex flex-col shadow-2xl animate-in slide-in-from-right duration-300">
+      <div className="relative w-full max-w-2xl h-full bg-zinc-950 border-l border-zinc-900 flex flex-col shadow-2xl animate-in slide-in-from-right duration-300 overflow-hidden">
         {/* Header */}
-        <div className="px-6 py-5 border-b border-slate-800 flex items-center justify-between bg-slate-950/20">
+        <div className="px-6 py-5 border-b border-zinc-900 flex items-center justify-between bg-zinc-950">
           <div>
             <h3 className="text-lg font-bold text-white flex items-center gap-2">
-              <ShieldAlert className="text-amber-400 animate-pulse" size={18} />
+              <ShieldAlert className="text-white animate-pulse" size={18} />
               Human Review Desk
             </h3>
-            <span className="text-[10px] text-slate-500 font-mono">Case ID: {caseItem.messageId}</span>
+            <span className="text-[10px] text-zinc-500 font-mono">Case ID: {caseItem.messageId}</span>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer"
+            className="p-1 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-colors cursor-pointer"
           >
             <X size={20} />
           </button>
         </div>
 
         {/* Form Content */}
-        <form onSubmit={handleSave} className="flex-1 overflow-y-auto p-6 space-y-6 flex flex-col justify-between">
-          <div className="space-y-6">
+        <form onSubmit={handleSave} className="flex-1 flex flex-col h-full overflow-hidden">
+          {/* Scrollable Body */}
+          <div className="flex-1 overflow-y-auto p-6 space-y-6">
             {/* 1. Customer Message */}
             <div className="space-y-2">
-              <span className="text-slate-400 text-xs font-bold uppercase tracking-wide flex items-center gap-1.5">
-                <MessageSquare size={13} className="text-indigo-400" />
+              <span className="text-zinc-400 text-xs font-bold uppercase tracking-wide flex items-center gap-1.5">
+                <MessageSquare size={13} className="text-white" />
                 Customer Message
               </span>
-              <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 text-sm text-slate-200 whitespace-pre-wrap select-text leading-relaxed">
+              <div className="bg-zinc-900/30 border border-zinc-900 rounded-xl p-4 text-sm text-zinc-200 whitespace-pre-wrap select-text leading-relaxed">
                 "{caseItem.message.rawText}"
               </div>
             </div>
 
             {/* 2. AI Decision details */}
-            <div className="bg-slate-950/40 border border-slate-800 rounded-xl p-4 space-y-3">
-              <span className="text-slate-400 text-xs font-bold uppercase tracking-wide flex items-center gap-1.5">
-                <Cpu size={14} className="text-indigo-400" />
+            <div className="bg-zinc-900/20 border border-zinc-800 rounded-xl p-4 space-y-3">
+              <span className="text-zinc-400 text-xs font-bold uppercase tracking-wide flex items-center gap-1.5">
+                <Cpu size={14} className="text-white" />
                 AI Suggested Classification
               </span>
 
               <div className="grid grid-cols-3 gap-3 text-xs">
-                <div className="bg-slate-950/60 p-2.5 border border-slate-900 rounded-lg">
-                  <span className="text-slate-500 font-medium block">Category</span>
+                <div className="bg-zinc-900/50 p-2.5 border border-zinc-800 rounded-lg">
+                  <span className="text-zinc-500 font-medium block">Category</span>
                   <span className="text-white font-bold uppercase block mt-1">{caseItem.category}</span>
                 </div>
-                <div className="bg-slate-950/60 p-2.5 border border-slate-900 rounded-lg">
-                  <span className="text-slate-500 font-medium block">Priority</span>
+                <div className="bg-zinc-900/50 p-2.5 border border-zinc-800 rounded-lg">
+                  <span className="text-zinc-500 font-medium block">Priority</span>
                   <span className={`inline-flex px-1.5 py-0.5 mt-1 rounded text-[10px] font-extrabold border ${getPriorityColor(caseItem.priority)}`}>
                     {caseItem.priority}
                   </span>
                 </div>
-                <div className="bg-slate-950/60 p-2.5 border border-slate-900 rounded-lg">
-                  <span className="text-slate-500 font-medium block">Confidence</span>
-                  <span className="text-indigo-400 font-bold block mt-1">{Math.round(caseItem.confidence * 100)}%</span>
+                <div className="bg-zinc-900/50 p-2.5 border border-zinc-800 rounded-lg">
+                  <span className="text-zinc-500 font-medium block">Confidence</span>
+                  <span className="text-white font-bold block mt-1">{Math.round(caseItem.confidence * 100)}%</span>
                 </div>
               </div>
 
-              <div className="text-xs space-y-1 pt-1.5 border-t border-slate-900">
-                <span className="text-slate-500 font-medium">Summary:</span>
-                <p className="text-slate-300 leading-relaxed font-sans">{caseItem.summary}</p>
+              <div className="text-xs space-y-1 pt-1.5 border-t border-zinc-900">
+                <span className="text-zinc-500 font-medium">Summary:</span>
+                <p className="text-zinc-300 leading-relaxed font-sans">{caseItem.summary}</p>
               </div>
 
               <div className="text-xs space-y-1">
-                <span className="text-slate-500 font-medium">Suggested Action:</span>
-                <p className="text-slate-350 leading-relaxed font-mono bg-slate-950/80 p-2 rounded border border-slate-900">{caseItem.suggestedAction}</p>
+                <span className="text-zinc-500 font-medium">Suggested Action:</span>
+                <p className="text-zinc-300 leading-relaxed font-mono bg-zinc-950 p-2 rounded border border-zinc-900">{caseItem.suggestedAction}</p>
               </div>
             </div>
 
             {/* 3. Why Human Review? Reason Box */}
-            <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 flex gap-3 items-start">
-              <ShieldAlert size={18} className="text-amber-400 shrink-0 mt-0.5" />
+            <div className="bg-white border border-white rounded-xl p-4 flex gap-3 items-start shadow-[0_0_15px_rgba(255,255,255,0.05)] text-zinc-950">
+              <ShieldAlert size={18} className="text-zinc-950 shrink-0 mt-0.5" />
               <div>
-                <h4 className="text-amber-400 text-xs font-bold uppercase tracking-wider">Triggered Escalation Check</h4>
-                <p className="text-slate-200 text-xs mt-1 leading-relaxed font-medium">
+                <h4 className="text-zinc-950 text-xs font-bold uppercase tracking-wider">Triggered Escalation Check</h4>
+                <p className="text-zinc-900 text-xs mt-1 leading-relaxed font-semibold">
                   {caseItem.humanReason || 'Parameters fall under escalation thresholds or guardrails.'}
                 </p>
               </div>
             </div>
 
-            <div className="border-t border-slate-800 my-4" />
+            <div className="border-t border-zinc-900 my-4" />
 
             {/* 4. Auditor Decision Actions */}
             <div className="space-y-4">
-              <span className="text-slate-400 text-xs font-bold uppercase tracking-wide block">
+              <span className="text-zinc-400 text-xs font-bold uppercase tracking-wide block">
                 Operator Action Decision
               </span>
 
               {/* Review Audit Options tabs */}
-              <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
+              <div className="flex bg-zinc-900 p-1 rounded-xl border border-zinc-800">
                 <button
                   type="button"
                   onClick={() => setDecisionType('accepted')}
                   className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all duration-200 cursor-pointer ${decisionType === 'accepted'
-                      ? 'bg-emerald-600 text-white shadow-md'
-                      : 'text-slate-400 hover:text-slate-200'
+                      ? 'bg-white text-zinc-950 shadow-md font-bold'
+                      : 'text-zinc-400 hover:text-white'
                     }`}
                 >
                   Accept AI Suggested Decision
@@ -227,8 +228,8 @@ export const HumanReviewDetail: React.FC<CaseDetailProps> = ({
                   type="button"
                   onClick={() => setDecisionType('overridden')}
                   className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all duration-200 cursor-pointer ${decisionType === 'overridden'
-                      ? 'bg-indigo-650 text-white shadow-md'
-                      : 'text-slate-400 hover:text-slate-200'
+                      ? 'bg-white text-zinc-950 shadow-md font-bold'
+                      : 'text-zinc-400 hover:text-white'
                     }`}
                 >
                   Override Classification
@@ -236,15 +237,16 @@ export const HumanReviewDetail: React.FC<CaseDetailProps> = ({
               </div>
 
               {/* Override Form Panel */}
+              {/* Override Form Panel */}
               {decisionType === 'overridden' && (
-                <div className="space-y-3 p-4 bg-slate-950/40 border border-slate-800 rounded-xl animate-fade-in text-xs">
+                <div className="space-y-3 p-4 bg-zinc-900/20 border border-zinc-800 rounded-xl animate-fade-in text-xs">
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <label className="text-slate-500 font-semibold block">Override Category</label>
+                      <label className="text-zinc-500 font-semibold block">Override Category</label>
                       <select
                         value={category}
                         onChange={(e) => setCategory(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-slate-200 focus:outline-none focus:border-indigo-500 capitalize"
+                        className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-zinc-200 focus:outline-none focus:border-white focus:ring-1 focus:ring-white font-semibold cursor-pointer transition-all capitalize"
                       >
                         {CATEGORIES.map((cat) => (
                           <option key={cat} value={cat}>
@@ -255,11 +257,11 @@ export const HumanReviewDetail: React.FC<CaseDetailProps> = ({
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-slate-500 font-semibold block">Override Priority</label>
+                      <label className="text-zinc-500 font-semibold block">Override Priority</label>
                       <select
                         value={priority}
                         onChange={(e) => setPriority(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-slate-200 focus:outline-none focus:border-indigo-500"
+                        className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-zinc-200 focus:outline-none focus:border-white focus:ring-1 focus:ring-white font-semibold cursor-pointer transition-all"
                       >
                         {PRIORITIES.map((pri) => (
                           <option key={pri} value={pri}>
@@ -271,12 +273,12 @@ export const HumanReviewDetail: React.FC<CaseDetailProps> = ({
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-slate-500 font-semibold block">Override Suggested Action Protocol</label>
+                    <label className="text-zinc-500 font-semibold block">Override Suggested Action Protocol</label>
                     <textarea
                       value={suggestedAction}
                       onChange={(e) => setSuggestedAction(e.target.value)}
                       rows={2}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-slate-200 focus:outline-none focus:border-indigo-500 font-mono"
+                      className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-zinc-200 focus:outline-none focus:border-white focus:ring-1 focus:ring-white font-mono"
                     />
                   </div>
 
@@ -286,9 +288,9 @@ export const HumanReviewDetail: React.FC<CaseDetailProps> = ({
                       id="needsHumanOverride"
                       checked={needsHuman}
                       onChange={(e) => setNeedsHuman(e.target.checked)}
-                      className="h-4 w-4 bg-slate-950 border border-slate-800 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                      className="h-4 w-4 bg-zinc-950 border border-zinc-800 rounded text-white focus:ring-white cursor-pointer"
                     />
-                    <label htmlFor="needsHumanOverride" className="text-xs font-semibold text-slate-350 select-none cursor-pointer">
+                    <label htmlFor="needsHumanOverride" className="text-xs font-semibold text-zinc-350 select-none cursor-pointer">
                       Keep Case in Escalated Review Status
                     </label>
                   </div>
@@ -297,8 +299,8 @@ export const HumanReviewDetail: React.FC<CaseDetailProps> = ({
 
               {/* Review Notes field (mandatory for override) */}
               <div className="space-y-1 text-xs">
-                <label className="text-slate-400 font-bold block uppercase tracking-wide">
-                  Review Audit Notes {decisionType === 'overridden' && <span className="text-rose-400">*</span>}
+                <label className="text-zinc-400 font-bold block uppercase tracking-wide">
+                  Review Audit Notes {decisionType === 'overridden' && <span className="text-white font-black">*</span>}
                 </label>
                 <textarea
                   value={notes}
@@ -309,16 +311,16 @@ export const HumanReviewDetail: React.FC<CaseDetailProps> = ({
                       ? 'Why did you override this triage decision? Enter explanations/reasons here (mandatory)...'
                       : 'Add comments, instructions or resolution notes for operators (optional)...'
                   }
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-zinc-200 focus:outline-none focus:border-white focus:ring-1 focus:ring-white placeholder:text-zinc-500"
                 />
               </div>
             </div>
           </div>
 
-          {/* Action buttons */}
-          <div className="space-y-3 pt-6 border-t border-slate-800 mt-6">
+          {/* Sticky Bottom Actions */}
+          <div className="border-t border-zinc-900 bg-zinc-950 p-6 space-y-4">
             {error && (
-              <div className="p-3.5 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-lg text-xs flex items-center gap-2">
+              <div className="p-3.5 bg-zinc-900 border border-zinc-800 text-zinc-300 rounded-lg text-xs flex items-center gap-2">
                 <ShieldAlert size={14} className="shrink-0" />
                 <span>{error}</span>
               </div>
@@ -335,10 +337,10 @@ export const HumanReviewDetail: React.FC<CaseDetailProps> = ({
               <button
                 type="submit"
                 disabled={saving}
-                className="btn btn-primary flex-1 py-2.5 font-bold transition-all text-xs flex justify-center items-center gap-2 cursor-pointer bg-indigo-600 hover:bg-indigo-500"
+                className="btn btn-primary flex-1 py-2.5 font-bold transition-all text-xs flex justify-center items-center gap-2 cursor-pointer bg-white text-zinc-950 hover:bg-zinc-200"
               >
                 {saving ? (
-                  <span className="spinner-border spinner-border-sm" />
+                  <span className="spinner-border spinner-border-sm animate-spin" />
                 ) : decisionType === 'accepted' ? (
                   <CheckCircle2 size={14} />
                 ) : (

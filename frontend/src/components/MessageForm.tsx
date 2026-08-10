@@ -49,12 +49,12 @@ export const MessageForm: React.FC<MessageFormProps> = ({ onSubmit, loading }) =
   ];
 
   return (
-    <div className="bg-slate-900/60 backdrop-blur-md border border-slate-800 rounded-xl p-6 shadow-xl">
+    <div className="bg-zinc-900/40 backdrop-blur-md border border-zinc-800 rounded-xl p-6 shadow-xl">
       <h3 className="text-lg font-bold text-white flex items-center gap-2 mb-2">
-        <Sparkles size={18} className="text-indigo-400" />
+        <Sparkles size={18} className="text-white" />
         Ingest Support Ticket
       </h3>
-      <p className="text-slate-400 text-sm mb-4">
+      <p className="text-zinc-400 text-sm mb-4">
         Type a message below or click one of the preset simulations to execute the triage pipeline.
       </p>
 
@@ -69,24 +69,24 @@ export const MessageForm: React.FC<MessageFormProps> = ({ onSubmit, loading }) =
             disabled={loading}
             rows={3}
             placeholder="Type support request here..."
-            className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-slate-100 rounded-lg p-3 pr-10 text-sm placeholder:text-slate-600 focus:outline-none transition-all disabled:opacity-50 resize-none"
+            className="w-full bg-zinc-950 border border-zinc-800 focus:border-white focus:ring-1 focus:ring-white text-zinc-105 rounded-lg p-3 pr-10 text-sm placeholder:text-zinc-650 focus:outline-none transition-all disabled:opacity-50 resize-none"
           />
           <button
             type="submit"
             disabled={loading || !text.trim()}
-            className="absolute right-3 bottom-4 text-indigo-400 hover:text-indigo-300 disabled:text-slate-700 transition-colors"
+            className="absolute right-3 bottom-4 text-white hover:text-zinc-350 disabled:text-zinc-700 transition-colors cursor-pointer"
           >
             <Send size={18} />
           </button>
         </div>
 
         {error && (
-          <p className="mt-2 text-rose-400 text-xs font-semibold">{error}</p>
+          <p className="mt-2 text-zinc-400 text-xs font-semibold">{error}</p>
         )}
       </form>
 
       <div className="mt-4">
-        <span className="text-slate-500 text-xs font-bold block mb-2 uppercase tracking-wide">
+        <span className="text-zinc-500 text-xs font-bold block mb-2 uppercase tracking-wide">
           Preset Simulations
         </span>
         <div className="flex flex-wrap gap-2">
@@ -99,7 +99,7 @@ export const MessageForm: React.FC<MessageFormProps> = ({ onSubmit, loading }) =
                 setText(tpl.text);
                 setError(null);
               }}
-              className="bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 text-slate-300 hover:text-white px-3 py-1.5 rounded-md text-xs font-medium transition-all disabled:opacity-50"
+              className="bg-zinc-950 hover:bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white px-3 py-1.5 rounded-md text-xs font-medium transition-all disabled:opacity-50 cursor-pointer"
             >
               {tpl.label}
             </button>
