@@ -43,7 +43,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 
 export const api = {
   getHealth: () => request<IHealthResponse>('/health'),
-
+  
   getStats: () =>
     request<{
       total: number;
@@ -52,10 +52,23 @@ export const api = {
       completed: number;
       failed: number;
       humanReview: number;
+      invalid: number;
+      p0: number;
+      p1: number;
+      p2: number;
+      p3: number;
+      averageConfidence: number;
     }>('/messages/stats'),
 
-  getMessages: (page = 1, limit = 10) =>
-    request<IMessagesResponse>(`/messages?page=${page}&limit=${limit}`),
+  getMessages: (page = 1, limit = 10, filters?: { status?: string; priority?: string; category?: string }) => {
+    let url = `/messages?page=${page}&limit=${limit}`;
+    if (filters) {
+      if (filters.status) url += `&status=${filters.status}`;
+      if (filters.priority) url += `&priority=${filters.priority}`;
+      if (filters.category) url += `&category=${filters.category}`;
+    }
+    return request<IMessagesResponse>(url);
+  },
 
   getMessageById: (id: string) => request<IMessageDetail>(`/messages/${id}`),
 
@@ -72,6 +85,46 @@ export const api = {
 
   retryTriage: (messageId: string) =>
     request<any>(`/triage/${messageId}/retry`, {
+      method: 'POST',
+    }),
+
+  importMessagesBulk: (csvText: string) =>
+    request<{
+      total: number;
+      valid: number;
+      invalid: number;
+      duplicates: number;
+      imported: number;
+    }>('/messages/bulk', {
+      method: 'POST',
+      body: JSON.stringify({ csvText }),
+    }),
+
+  startBulkTriage: () =>
+    request<{ status: string }>('/triage/bulk', {
+      method: 'POST',
+    }),
+
+  getBulkTriageStatus: () =>
+    request<{
+      status: 'idle' | 'running' | 'paused' | 'stopped' | 'completed';
+      total: number;
+      processed: number;
+      pending: number;
+      processing: number;
+      completed: number;
+      humanReview: number;
+      failed: number;
+      invalid: number;
+    }>('/triage/bulk/status'),
+
+  pauseBulkTriage: () =>
+    request<{ status: string }>('/triage/bulk/pause', {
+      method: 'POST',
+    }),
+
+  stopBulkTriage: () =>
+    request<{ status: string }>('/triage/bulk/stop', {
       method: 'POST',
     }),
 };

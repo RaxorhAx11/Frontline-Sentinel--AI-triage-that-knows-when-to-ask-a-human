@@ -5,12 +5,14 @@ import { DashboardStats } from './components/DashboardStats';
 import { MessageForm } from './components/MessageForm';
 import { MessagesTable } from './components/MessagesTable';
 import { MessageDetails } from './components/MessageDetails';
+import { DatasetTriage } from './components/DatasetTriage';
 import type { IMessageDetail } from '../../shared/src/types';
 
 export default function App() {
   const [stats, setStats] = useState<any>(null);
   const [messages, setMessages] = useState<IMessageDetail[]>([]);
   const [selectedMessage, setSelectedMessage] = useState<IMessageDetail | null>(null);
+  const [activeTab, setActiveTab] = useState<'single' | 'bulk'>('single');
   
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -42,11 +44,15 @@ export default function App() {
     }
   }, []);
 
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [priorityFilter, setPriorityFilter] = useState('all');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+
   // Fetch Messages List
-  const fetchMessages = useCallback(async (targetPage = 1) => {
+  const fetchMessages = useCallback(async (targetPage = 1, currentFilters = { status: statusFilter, priority: priorityFilter, category: categoryFilter }) => {
     setLoadingMessages(true);
     try {
-      const data = await api.getMessages(targetPage, 8);
+      const data = await api.getMessages(targetPage, 8, currentFilters);
       setMessages(data.messages);
       setTotalPages(data.totalPages);
       setTotalMessages(data.total);
@@ -56,7 +62,20 @@ export default function App() {
     } finally {
       setLoadingMessages(false);
     }
-  }, []);
+  }, [statusFilter, priorityFilter, categoryFilter]);
+
+  const handleFilterChange = (type: 'status' | 'priority' | 'category', value: string) => {
+    setPage(1);
+    const updatedFilters = {
+      status: type === 'status' ? value : statusFilter,
+      priority: type === 'priority' ? value : priorityFilter,
+      category: type === 'category' ? value : categoryFilter,
+    };
+    if (type === 'status') setStatusFilter(value);
+    if (type === 'priority') setPriorityFilter(value);
+    if (type === 'category') setCategoryFilter(value);
+    fetchMessages(1, updatedFilters);
+  };
 
   // Full Refresh
   const handleRefresh = useCallback(() => {
@@ -186,6 +205,10 @@ export default function App() {
               total={totalMessages}
               page={page}
               totalPages={totalPages}
+              statusFilter={statusFilter}
+              priorityFilter={priorityFilter}
+              categoryFilter={categoryFilter}
+              onFilterChange={handleFilterChange}
               onPageChange={(newPage) => {
                 setPage(newPage);
                 fetchMessages(newPage);
@@ -196,10 +219,37 @@ export default function App() {
 
           {/* Side Control Ingestion Panel */}
           <div className="space-y-6">
-            <MessageForm 
-              onSubmit={handleSubmitMessage} 
-              loading={submitting} 
-            />
+            <div className="flex bg-slate-900/60 p-1 rounded-xl border border-slate-800/80">
+              <button
+                onClick={() => setActiveTab('single')}
+                className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all duration-200 ${
+                  activeTab === 'single'
+                    ? 'bg-indigo-600 text-white shadow-md'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                Single Ticket
+              </button>
+              <button
+                onClick={() => setActiveTab('bulk')}
+                className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all duration-200 ${
+                  activeTab === 'bulk'
+                    ? 'bg-indigo-600 text-white shadow-md'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                Bulk Dataset Triage
+              </button>
+            </div>
+
+            {activeTab === 'single' ? (
+              <MessageForm 
+                onSubmit={handleSubmitMessage} 
+                loading={submitting} 
+              />
+            ) : (
+              <DatasetTriage onImportComplete={handleRefresh} />
+            )}
           </div>
         </div>
       </main>

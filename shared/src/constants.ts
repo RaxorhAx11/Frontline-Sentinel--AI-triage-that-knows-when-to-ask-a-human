@@ -23,7 +23,8 @@ export const STATUSES = [
   'processing',
   'completed',
   'failed',
-  'human_review'
+  'human_review',
+  'invalid'
 ] as const;
 
 export type MessageStatus = typeof STATUSES[number];

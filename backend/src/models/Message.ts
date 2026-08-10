@@ -15,6 +15,10 @@ const MessageSchema = new Schema(
       default: 'pending',
       required: true,
     },
+    externalId: {
+      type: String,
+      default: null,
+    },
   },
   {
     timestamps: true,

@@ -8,6 +8,10 @@ interface MessagesTableProps {
   total: number;
   page: number;
   totalPages: number;
+  statusFilter: string;
+  priorityFilter: string;
+  categoryFilter: string;
+  onFilterChange: (type: 'status' | 'priority' | 'category', value: string) => void;
   onPageChange: (newPage: number) => void;
   onSelectMessage: (msg: IMessageDetail) => void;
 }
@@ -17,6 +21,10 @@ export const MessagesTable: React.FC<MessagesTableProps> = ({
   loading,
   page,
   totalPages,
+  statusFilter,
+  priorityFilter,
+  categoryFilter,
+  onFilterChange,
   onPageChange,
   onSelectMessage,
 }) => {
@@ -60,9 +68,68 @@ export const MessagesTable: React.FC<MessagesTableProps> = ({
 
   return (
     <div className="bg-slate-900/60 backdrop-blur-md border border-slate-800 rounded-xl overflow-hidden shadow-xl">
-      <div className="px-6 py-4 border-b border-slate-800 flex justify-between items-center">
-        <h3 className="text-lg font-bold text-white">Ingestion & Classification Logs</h3>
-        {loading && <span className="text-indigo-400 text-xs font-semibold animate-pulse">Fetching records...</span>}
+      <div className="px-6 py-4 border-b border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h3 className="text-lg font-bold text-white">Ingestion & Classification Logs</h3>
+          {loading && <span className="text-indigo-400 text-xs font-semibold animate-pulse block mt-1">Fetching records...</span>}
+        </div>
+        
+        {/* Filters Panel */}
+        <div className="flex flex-wrap items-center gap-3 text-xs">
+          <div className="flex flex-col gap-1">
+            <label className="text-slate-500 font-bold uppercase text-[9px]">Status</label>
+            <select
+              value={statusFilter}
+              onChange={(e) => onFilterChange('status', e.target.value)}
+              className="bg-slate-950 border border-slate-800 text-slate-300 rounded px-2.5 py-1.5 focus:outline-none focus:border-indigo-500 font-semibold"
+            >
+              <option value="all">All Statuses</option>
+              <option value="pending">Pending</option>
+              <option value="processing">Processing</option>
+              <option value="completed">Completed</option>
+              <option value="human_review">Human Review</option>
+              <option value="failed">Failed</option>
+              <option value="invalid">Invalid</option>
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-slate-500 font-bold uppercase text-[9px]">Priority</label>
+            <select
+              value={priorityFilter}
+              onChange={(e) => onFilterChange('priority', e.target.value)}
+              className="bg-slate-950 border border-slate-800 text-slate-300 rounded px-2.5 py-1.5 focus:outline-none focus:border-indigo-500 font-semibold"
+            >
+              <option value="all">All Priorities</option>
+              <option value="P0">P0 (Critical)</option>
+              <option value="P1">P1 (High)</option>
+              <option value="P2">P2 (Normal)</option>
+              <option value="P3">P3 (Low)</option>
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-slate-500 font-bold uppercase text-[9px]">Category</label>
+            <select
+              value={categoryFilter}
+              onChange={(e) => onFilterChange('category', e.target.value)}
+              className="bg-slate-950 border border-slate-800 text-slate-300 rounded px-2.5 py-1.5 focus:outline-none focus:border-indigo-500 font-semibold capitalize"
+            >
+              <option value="all">All Categories</option>
+              <option value="billing">Billing</option>
+              <option value="account">Account</option>
+              <option value="order_delivery">Order & Delivery</option>
+              <option value="refund_cancellation">Refund & Cancel</option>
+              <option value="technical">Technical</option>
+              <option value="product_service">Product Service</option>
+              <option value="complaint">Complaint</option>
+              <option value="general_question">General Question</option>
+              <option value="security_abuse">Security & Abuse</option>
+              <option value="out_of_scope">Out of Scope</option>
+              <option value="unknown">Unknown</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       <div className="overflow-x-auto">

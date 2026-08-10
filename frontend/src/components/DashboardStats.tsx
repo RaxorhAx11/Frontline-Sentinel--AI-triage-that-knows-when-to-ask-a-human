@@ -9,6 +9,8 @@ interface StatsProps {
     completed: number;
     failed: number;
     humanReview: number;
+    invalid: number;
+    averageConfidence: number;
   } | null;
   loading: boolean;
   onRefresh: () => void;
@@ -52,11 +54,19 @@ export const DashboardStats: React.FC<StatsProps> = ({ stats, loading, onRefresh
     },
     {
       title: 'System Failures',
-      value: stats?.failed ?? 0,
+      value: (stats?.failed ?? 0) + (stats?.invalid ?? 0),
       icon: AlertTriangle,
       color: 'text-rose-400',
       bgColor: 'bg-rose-500/10',
       borderColor: 'border-rose-500/20',
+    },
+    {
+      title: 'Avg Confidence',
+      value: stats?.averageConfidence !== undefined ? `${Math.round(stats.averageConfidence * 100)}%` : '0%',
+      icon: CheckCircle2,
+      color: 'text-purple-400',
+      bgColor: 'bg-purple-500/10',
+      borderColor: 'border-purple-500/20',
     },
   ];
 
@@ -77,7 +87,7 @@ export const DashboardStats: React.FC<StatsProps> = ({ stats, loading, onRefresh
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         {cards.map((card) => {
           const Icon = card.icon;
           return (

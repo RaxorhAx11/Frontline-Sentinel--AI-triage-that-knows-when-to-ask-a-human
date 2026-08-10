@@ -7,6 +7,12 @@ import {
   getDashboardStats,
   runTriage,
   retryTriage,
+  importMessagesBulk,
+  startBulkTriage,
+  getBulkTriageStatus,
+  pauseBulkTriage,
+  stopBulkTriage,
+  getMessagesStats,
 } from '../controllers/message.controller';
 import { validateBody } from '../middleware/validate.middleware';
 import { createMessageSchema } from '../validators/message.validator';
@@ -17,7 +23,14 @@ const router = Router();
 router.get('/health', checkHealth);
 
 // Message stats endpoint (must be defined BEFORE /messages/:id)
-router.get('/messages/stats', getDashboardStats);
+router.get('/messages/stats', getMessagesStats);
+
+// Bulk endpoints
+router.post('/messages/bulk', importMessagesBulk);
+router.post('/triage/bulk', startBulkTriage);
+router.get('/triage/bulk/status', getBulkTriageStatus);
+router.post('/triage/bulk/pause', pauseBulkTriage);
+router.post('/triage/bulk/stop', stopBulkTriage);
 
 // Message creation and list endpoints
 router.post('/messages', validateBody(createMessageSchema), createMessage);
