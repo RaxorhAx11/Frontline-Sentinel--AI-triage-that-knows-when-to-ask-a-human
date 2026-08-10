@@ -10,6 +10,7 @@ export interface IDbTriageDecision {
   needsHuman: boolean;
   confidence: number;
   humanReason: string | null;
+  guardrailFlags?: string[];
   model: string | null;
   promptVersion: string | null;
   latencyMs: number | null;
@@ -60,6 +61,10 @@ const TriageDecisionSchema = new Schema<IDbTriageDecision>(
     humanReason: {
       type: String,
       default: null,
+    },
+    guardrailFlags: {
+      type: [String],
+      default: [],
     },
     model: {
       type: String,

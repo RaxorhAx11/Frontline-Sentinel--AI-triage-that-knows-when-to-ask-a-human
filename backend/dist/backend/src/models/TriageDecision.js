@@ -77,6 +77,10 @@ const TriageDecisionSchema = new mongoose_1.Schema({
         type: String,
         default: null,
     },
+    guardrailFlags: {
+        type: [String],
+        default: [],
+    },
     model: {
         type: String,
         default: null,

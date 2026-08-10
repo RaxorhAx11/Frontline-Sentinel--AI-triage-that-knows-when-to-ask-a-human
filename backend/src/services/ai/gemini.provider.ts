@@ -59,6 +59,56 @@ export class GeminiProvider implements IAIProvider {
       },
       generationConfig: {
         responseMimeType: 'application/json',
+        responseSchema: {
+          type: 'object',
+          properties: {
+            category: {
+              type: 'string',
+              enum: [
+                'billing',
+                'account',
+                'order_delivery',
+                'refund_cancellation',
+                'technical',
+                'product_service',
+                'complaint',
+                'general_question',
+                'security_abuse',
+                'out_of_scope',
+                'unknown'
+              ]
+            },
+            priority: {
+              type: 'string',
+              enum: ['P0', 'P1', 'P2', 'P3']
+            },
+            summary: {
+              type: 'string'
+            },
+            suggestedAction: {
+              type: 'string'
+            },
+            needsHuman: {
+              type: 'boolean'
+            },
+            confidence: {
+              type: 'number'
+            },
+            humanReason: {
+              type: 'string',
+              nullable: true
+            }
+          },
+          required: [
+            'category',
+            'priority',
+            'summary',
+            'suggestedAction',
+            'needsHuman',
+            'confidence',
+            'humanReason'
+          ]
+        },
         temperature: 0.1, // Keep it highly deterministic for classification tasks
       },
     };

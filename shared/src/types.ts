@@ -18,6 +18,7 @@ export interface ITriageDecision {
   needsHuman: boolean;
   confidence: number;
   humanReason?: string | null;
+  guardrailFlags?: string[];
   model?: string | null;
   promptVersion?: string | null;
   latencyMs?: number | null;

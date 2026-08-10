@@ -2,9 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.triageService = exports.TriageService = void 0;
 const triage_validator_1 = require("../validators/triage.validator");
-const constants_1 = require("../../../shared/src/constants");
 const gemini_provider_1 = require("./ai/gemini.provider");
 const system_prompt_1 = require("./ai/system.prompt");
+const guardrail_service_1 = require("./guardrail.service");
 class TriageService {
     provider = gemini_provider_1.aiProvider;
     setProvider(provider) {
@@ -18,46 +18,65 @@ class TriageService {
         const startTime = Date.now();
         const model = process.env.GEMINI_MODEL || process.env.AI_MODEL || 'gemini-3.5-flash';
         const promptVersion = 'v2';
-        // Guardrail 6: The message is empty/invalid
-        this.validateInput(rawText);
-        // 1. Call AI Provider (Guardrail 12: The model provider fails)
-        const aiResponse = await this.provider.generateTriage(rawText, system_prompt_1.SYSTEM_PROMPT);
-        const latencyMs = Date.now() - startTime;
-        // Calculate cost telemetry (based on gemini-1.5-flash pricing / free tier)
-        const inputTokens = aiResponse.inputTokens;
-        const outputTokens = aiResponse.outputTokens;
-        const totalTokens = aiResponse.totalTokens;
-        const estimatedCost = 0; // Free tier API cost is $0
-        // 2. Parse JSON (Guardrail 1: JSON cannot be parsed)
-        let parsedJson;
         try {
-            const cleanedJson = this.extractJson(aiResponse.rawResponse);
-            parsedJson = JSON.parse(cleanedJson);
+            // Stage 1: Input Validation (Empty/Whitespace & Length check)
+            this.validateInput(rawText);
+            // 1. Call AI Provider
+            const aiResponse = await this.provider.generateTriage(rawText, system_prompt_1.SYSTEM_PROMPT);
+            const latencyMs = Date.now() - startTime;
+            // Calculate cost telemetry
+            const inputTokens = aiResponse.inputTokens;
+            const outputTokens = aiResponse.outputTokens;
+            const totalTokens = aiResponse.totalTokens;
+            const estimatedCost = 0; // Free tier API cost is $0
+            // 2. Parse JSON
+            let parsedJson;
+            try {
+                const cleanedJson = this.extractJson(aiResponse.rawResponse);
+                parsedJson = JSON.parse(cleanedJson);
+            }
+            catch (err) {
+                this.logTriage(messageId, 'failed', model, latencyMs, 'JSON_PARSING_ERROR');
+                throw new Error('JSON cannot be parsed: The AI model response was not valid JSON.');
+            }
+            // 3. Schema Validation (Zod)
+            const validationResult = triage_validator_1.triageDecisionSchema.safeParse(parsedJson);
+            if (!validationResult.success) {
+                this.logTriage(messageId, 'failed', model, latencyMs, 'SCHEMA_VALIDATION_ERROR');
+                throw new Error('Schema validation failed: Required fields are missing or type-mismatched in AI response.');
+            }
+            const decisionOutput = validationResult.data;
+            // 4. Apply Deterministic Guardrails
+            const guardrailResult = guardrail_service_1.guardrailService.apply(rawText, decisionOutput);
+            const finalizedDecision = guardrailResult.finalDecision;
+            const finalStatus = finalizedDecision.needsHuman ? 'human_review' : 'completed';
+            this.logTriage(messageId, finalStatus, model, latencyMs);
+            return {
+                messageId,
+                ...finalizedDecision,
+                model,
+                promptVersion,
+                latencyMs,
+                inputTokens,
+                outputTokens,
+                totalTokens,
+                estimatedCost,
+            };
         }
-        catch (err) {
-            console.error('Failed to parse AI JSON:', aiResponse.rawResponse);
-            throw new Error('JSON cannot be parsed: The AI model response was not valid JSON.');
+        catch (error) {
+            const latencyMs = Date.now() - startTime;
+            const errorCategory = error.message && error.message.includes('Input length')
+                ? 'INPUT_LENGTH_EXCEEDED'
+                : error.message && error.message.includes('Empty customer message')
+                    ? 'EMPTY_INPUT'
+                    : error.message && error.message.includes('JSON cannot be')
+                        ? 'JSON_PARSING_ERROR'
+                        : error.message && error.message.includes('Schema validation')
+                            ? 'SCHEMA_VALIDATION_ERROR'
+                            : 'PROVIDER_ERROR';
+            this.logTriage(messageId, 'failed', model, latencyMs, errorCategory);
+            throw error;
         }
-        // 3. Schema Validation (Guardrail 2: Required fields are missing / malformed)
-        const validationResult = triage_validator_1.triageDecisionSchema.safeParse(parsedJson);
-        if (!validationResult.success) {
-            console.error('AI JSON schema validation failed:', validationResult.error.format());
-            throw new Error('Schema validation failed: Required fields are missing or type-mismatched in AI response.');
-        }
-        const decisionOutput = validationResult.data;
-        // 4. Apply Deterministic Guardrails (Guardrails 3, 4, 5, 7, 8, 9, 10, 11)
-        const finalizedDecision = this.applyGuardrails(rawText, decisionOutput);
-        return {
-            messageId,
-            ...finalizedDecision,
-            model,
-            promptVersion,
-            latencyMs,
-            inputTokens,
-            outputTokens,
-            totalTokens,
-            estimatedCost,
-        };
     }
     /**
      * Pipeline Stage 1: Input Validation
@@ -66,6 +85,15 @@ class TriageService {
         if (!rawText || rawText.trim().length === 0) {
             throw new Error('Pipeline Input Error: Empty customer message');
         }
+        if (rawText.length > 4000) {
+            throw new Error('Pipeline Input Error: Input length exceeds 4000 characters.');
+        }
+    }
+    /**
+     * Helper: Privacy-conscious logging of triage results
+     */
+    logTriage(messageId, status, model, latencyMs, errorCategory) {
+        console.log(`[TRIAGE_LOG] MessageID: ${messageId} | Status: ${status} | Model: ${model || 'Unknown'} | Latency: ${latencyMs !== null ? `${latencyMs}ms` : 'N/A'} | ErrorCategory: ${errorCategory || 'None'}`);
     }
     /**
      * Helper: Strip markdown formatting blocks (e.g. ```json ... ```) to extract raw JSON
@@ -116,90 +144,6 @@ class TriageService {
             }
         }
         return cleaned;
-    }
-    /**
-     * Helper: Apply the 12 deterministic guardrails to the parsed JSON
-     */
-    applyGuardrails(rawText, decision) {
-        const output = { ...decision };
-        // Guardrail 3: Category is invalid
-        const isValidCategory = constants_1.CATEGORIES.includes(output.category);
-        if (!isValidCategory) {
-            output.category = 'unknown';
-            output.needsHuman = true;
-            output.humanReason = 'AI response mapping error: Invalid category';
-        }
-        // Guardrail 4: Priority is invalid
-        const isValidPriority = constants_1.PRIORITIES.includes(output.priority);
-        if (!isValidPriority) {
-            output.priority = 'P1';
-            output.needsHuman = true;
-            output.humanReason = 'AI response mapping error: Invalid priority';
-        }
-        // Guardrail 5: Confidence is outside 0–1
-        if (output.confidence < 0 || output.confidence > 1) {
-            output.confidence = 0.0;
-            output.needsHuman = true;
-            output.humanReason = 'AI response mapping error: Confidence score out of bounds';
-        }
-        // Guardrail 8: The message is clearly ambiguous
-        if (output.category === 'unknown') {
-            output.needsHuman = true;
-            output.humanReason = output.humanReason || "The customer's request is too ambiguous.";
-        }
-        // Guardrail 9: The message contains a security-sensitive issue
-        if (output.category === 'security_abuse') {
-            output.priority = 'P0'; // Enforce P0 for security
-            output.needsHuman = true;
-            output.humanReason = output.humanReason || 'The message contains a security-sensitive request.';
-        }
-        // Guardrail 10: The AI output contains unsupported claims / financial escalations
-        // Check if billing inquiry has high financial magnitude or important claims
-        const lowerText = rawText.toLowerCase();
-        const hasLargeAmount = /\b\d{3,}\b/.test(lowerText) || lowerText.includes('thousand') || lowerText.includes('million');
-        if (output.category === 'billing' && (output.priority === 'P0' || output.priority === 'P1' || hasLargeAmount)) {
-            output.needsHuman = true;
-            output.humanReason = output.humanReason || 'The issue has significant financial impact.';
-        }
-        // Guardrail 11: The model response is incomplete
-        if (!output.summary || output.summary.trim().length === 0 || !output.suggestedAction || output.suggestedAction.trim().length === 0) {
-            output.needsHuman = true;
-            output.humanReason = 'The AI response was incomplete or missing fields.';
-        }
-        // Guardrail 10 (Abuse/Out of Scope): If out of scope, escalate
-        if (output.category === 'out_of_scope') {
-            output.needsHuman = true;
-            output.humanReason = output.humanReason || 'The request is out of scope.';
-        }
-        // Guardrail 7: Confidence is below the configured human-review threshold
-        const HUMAN_REVIEW_THRESHOLD = 0.70;
-        if (output.confidence < HUMAN_REVIEW_THRESHOLD) {
-            output.needsHuman = true;
-            output.humanReason = output.humanReason || 'AI confidence is below the configured threshold.';
-        }
-        return output;
-    }
-    /**
-     * Helper: Construct a standard fallback triage decision for validation/network failures
-     */
-    createFallbackDecision(messageId, reason, model, promptVersion, latencyMs, inputTokens = null, outputTokens = null, totalTokens = null, estimatedCost = null) {
-        return {
-            messageId,
-            category: 'unknown',
-            priority: 'P1',
-            summary: 'Classification failed: The pipeline encountered a system, network, or schema validation error.',
-            suggestedAction: 'Escalate to standard customer support team for manual inspection.',
-            needsHuman: true,
-            confidence: 0.0,
-            humanReason: reason,
-            model,
-            promptVersion,
-            latencyMs,
-            inputTokens,
-            outputTokens,
-            totalTokens,
-            estimatedCost,
-        };
     }
 }
 exports.TriageService = TriageService;
