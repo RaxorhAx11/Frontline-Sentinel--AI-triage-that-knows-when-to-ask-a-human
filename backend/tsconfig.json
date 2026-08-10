@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "commonjs",
-    "moduleResolution": "node",
+    "rootDir": "..",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
