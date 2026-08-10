@@ -231,11 +231,29 @@ export const DatasetTriage: React.FC<DatasetTriageProps> = ({ onImportComplete }
               </button>
             </div>
           )}
+
+          {triageStatus && (triageStatus.pending > 0 || triageStatus.failed > 0) && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-zinc-950/80 rounded-xl border border-zinc-900 mt-2">
+              <div className="text-left">
+                <h4 className="text-xs font-bold text-white">Existing Pending Tickets Detected</h4>
+                <p className="text-[10px] text-zinc-400 mt-0.5">
+                  There are <span className="highlight-text">{triageStatus.pending} pending</span> and <span className="highlight-text">{triageStatus.failed} failed</span> tickets in the database.
+                </p>
+              </div>
+              <button
+                onClick={handleStartTriage}
+                disabled={loading}
+                className="btn btn-success text-xs font-bold px-4 py-2"
+              >
+                Run Triage on Existing ({triageStatus.pending + triageStatus.failed})
+              </button>
+            </div>
+          )}
         </div>
       )}
 
       {/* Import Success Stats */}
-      {importStats && triageStatus?.status === 'idle' && (
+      {importStats && (!triageStatus || triageStatus.status === 'idle') && (
         <div className="import-success-panel">
           <div className="success-banner">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="success-icon">
@@ -353,18 +371,43 @@ export const DatasetTriage: React.FC<DatasetTriageProps> = ({ onImportComplete }
               </>
             )}
             {(triageStatus.status === 'paused' || triageStatus.status === 'stopped') && (
-              <button onClick={handleStartTriage} className="btn btn-success">
-                Resume AI Triage
-              </button>
+              <>
+                <button onClick={handleStartTriage} className="btn btn-success">
+                  Resume AI Triage
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      await api.resetBulkTriage();
+                      const status = await api.getBulkTriageStatus();
+                      setTriageStatus(status);
+                      setImportStats(null);
+                      setFile(null);
+                      setCsvContent('');
+                      setDetectStats(null);
+                    } catch (err: any) {
+                      setError(err.message || 'Failed to reset bulk triage.');
+                    }
+                  }}
+                  className="btn btn-secondary"
+                >
+                  Reset & Start Over
+                </button>
+              </>
             )}
             {triageStatus.status === 'completed' && (
               <button
-                onClick={() => {
-                  setImportStats(null);
-                  setTriageStatus(null);
-                  setFile(null);
-                  setCsvContent('');
-                  setDetectStats(null);
+                onClick={async () => {
+                  try {
+                    await api.resetBulkTriage();
+                    setImportStats(null);
+                    setTriageStatus(null);
+                    setFile(null);
+                    setCsvContent('');
+                    setDetectStats(null);
+                  } catch (err: any) {
+                    setError(err.message || 'Failed to reset bulk triage.');
+                  }
                 }}
                 className="btn btn-primary"
               >

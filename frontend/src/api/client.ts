@@ -138,6 +138,11 @@ export const api = {
       method: 'POST',
     }),
 
+  resetBulkTriage: () =>
+    request<{ status: string }>('/triage/bulk/reset', {
+      method: 'POST',
+    }),
+
   getEvaluations: () => request<any[]>('/evaluations'),
 
   saveGroundTruth: (payload: {

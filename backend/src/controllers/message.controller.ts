@@ -228,6 +228,20 @@ export const stopBulkTriage = async (
   }
 };
 
+export const resetBulkTriage = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    bulkTriageService.reset();
+    res.status(200).json({ status: 'idle' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
 export const getMessagesStats = async (
   req: Request,
   res: Response,

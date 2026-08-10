@@ -12,6 +12,7 @@ import {
   getBulkTriageStatus,
   pauseBulkTriage,
   stopBulkTriage,
+  resetBulkTriage,
   getMessagesStats,
   deleteMessage,
   resetAllData,
@@ -46,6 +47,7 @@ router.post('/triage/bulk', startBulkTriage);
 router.get('/triage/bulk/status', getBulkTriageStatus);
 router.post('/triage/bulk/pause', pauseBulkTriage);
 router.post('/triage/bulk/stop', stopBulkTriage);
+router.post('/triage/bulk/reset', resetBulkTriage);
 
 // Message creation and list endpoints
 router.post('/messages', validateBody(createMessageSchema), createMessage);
