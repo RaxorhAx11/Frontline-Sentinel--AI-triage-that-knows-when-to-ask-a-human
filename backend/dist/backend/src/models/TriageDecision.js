@@ -89,6 +89,18 @@ const TriageDecisionSchema = new mongoose_1.Schema({
         type: Number,
         default: null,
     },
+    inputTokens: {
+        type: Number,
+        default: null,
+    },
+    outputTokens: {
+        type: Number,
+        default: null,
+    },
+    estimatedCost: {
+        type: Number,
+        default: null,
+    },
 }, {
     timestamps: { createdAt: true, updatedAt: false },
     toJSON: {

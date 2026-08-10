@@ -20,6 +20,7 @@ export default function App() {
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [apiOnline, setApiOnline] = useState<boolean | null>(null);
+  const [triaging, setTriaging] = useState(false);
 
   // Fetch Dashboard Stats
   const fetchStats = useCallback(async () => {
@@ -97,6 +98,33 @@ export default function App() {
       setSelectedMessage(fullMsg);
     } catch (err) {
       console.error('Error fetching message details:', err);
+    }
+  };
+
+  // Run or retry triage pipeline
+  const handleTriage = async (messageId: string, isRetry: boolean) => {
+    setTriaging(true);
+    if (selectedMessage) {
+      setSelectedMessage({ ...selectedMessage, status: 'processing' });
+    }
+    try {
+      if (isRetry) {
+        await api.retryTriage(messageId);
+      } else {
+        await api.runTriage(messageId);
+      }
+      const fullMsg = await api.getMessageById(messageId);
+      setSelectedMessage(fullMsg);
+      await Promise.all([fetchStats(), fetchMessages(page)]);
+    } catch (err) {
+      console.error('Error executing triage:', err);
+      try {
+        const fullMsg = await api.getMessageById(messageId);
+        setSelectedMessage(fullMsg);
+        await Promise.all([fetchStats(), fetchMessages(page)]);
+      } catch {}
+    } finally {
+      setTriaging(false);
     }
   };
 
@@ -181,6 +209,8 @@ export default function App() {
         <MessageDetails
           message={selectedMessage}
           onClose={() => setSelectedMessage(null)}
+          onTriage={handleTriage}
+          triaging={triaging}
         />
       )}
 

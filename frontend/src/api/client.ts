@@ -64,4 +64,14 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ rawText }),
     }),
+
+  runTriage: (messageId: string) =>
+    request<any>(`/triage/${messageId}`, {
+      method: 'POST',
+    }),
+
+  retryTriage: (messageId: string) =>
+    request<any>(`/triage/${messageId}/retry`, {
+      method: 'POST',
+    }),
 };

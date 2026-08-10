@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getDashboardStats = exports.getMessageById = exports.getMessages = exports.createMessage = void 0;
+exports.retryTriage = exports.runTriage = exports.getDashboardStats = exports.getMessageById = exports.getMessages = exports.createMessage = void 0;
 const message_service_1 = require("../services/message.service");
 const createMessage = async (req, res, next) => {
     try {
@@ -68,3 +68,53 @@ const getDashboardStats = async (req, res, next) => {
     }
 };
 exports.getDashboardStats = getDashboardStats;
+const runTriage = async (req, res, next) => {
+    try {
+        const { messageId } = req.params;
+        if (!messageId.match(/^[0-9a-fA-F]{24}$/)) {
+            res.status(400).json({
+                status: 'error',
+                message: 'Invalid message ID format',
+            });
+            return;
+        }
+        const result = await message_service_1.messageService.runTriage(messageId);
+        res.status(200).json(result);
+    }
+    catch (error) {
+        if (error.message && error.message.includes('not found')) {
+            res.status(404).json({
+                status: 'error',
+                message: error.message,
+            });
+            return;
+        }
+        next(error);
+    }
+};
+exports.runTriage = runTriage;
+const retryTriage = async (req, res, next) => {
+    try {
+        const { messageId } = req.params;
+        if (!messageId.match(/^[0-9a-fA-F]{24}$/)) {
+            res.status(400).json({
+                status: 'error',
+                message: 'Invalid message ID format',
+            });
+            return;
+        }
+        const result = await message_service_1.messageService.retryTriage(messageId);
+        res.status(200).json(result);
+    }
+    catch (error) {
+        if (error.message && error.message.includes('not found')) {
+            res.status(404).json({
+                status: 'error',
+                message: error.message,
+            });
+            return;
+        }
+        next(error);
+    }
+};
+exports.retryTriage = retryTriage;

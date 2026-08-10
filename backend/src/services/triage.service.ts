@@ -1,37 +1,108 @@
 import { TriageDecisionOutput, triageDecisionSchema } from '../validators/triage.validator';
 import { ITriageDecision } from '../../../shared/src/types';
-import { Category, Priority } from '../../../shared/src/constants';
+import { CATEGORIES, PRIORITIES } from '../../../shared/src/constants';
+import { aiProvider } from './ai/gemini.provider';
+import { SYSTEM_PROMPT } from './ai/system.prompt';
 
 export class TriageService {
   /**
    * Main entry point for the triage pipeline.
-   * Runs the message through the pipeline stages:
-   * Input Validation -> AI Triage Simulation -> Schema Validation -> Guardrails -> Confidence Evaluation -> Human Escalation
+   * Customer Message -> Input Validation -> AI Triage -> Schema Validation -> Deterministic Guardrails -> Save
    */
   public async triageMessage(messageId: string, rawText: string): Promise<Omit<ITriageDecision, 'createdAt'>> {
     const startTime = Date.now();
+    const model = process.env.AI_MODEL || 'gemini-1.5-flash';
+    const promptVersion = 'v2';
 
-    // 1. Input Validation
-    this.validateInput(rawText);
+    // Guardrail 6: The message is empty/invalid
+    try {
+      this.validateInput(rawText);
+    } catch (err: any) {
+      const latencyMs = Date.now() - startTime;
+      return this.createFallbackDecision(
+        messageId,
+        'The customer message is empty or invalid.',
+        model,
+        promptVersion,
+        latencyMs
+      );
+    }
 
-    // 2. AI Triage Simulation (Mock LLM)
-    const rawAiOutput = await this.simulateAITriage(rawText);
+    try {
+      // 1. Call AI Provider (Guardrail 12: The model provider fails)
+      const aiResponse = await aiProvider.generateTriage(rawText, SYSTEM_PROMPT);
+      const latencyMs = Date.now() - startTime;
 
-    // 3. Schema Validation & Structured Output Extraction
-    const parsedOutput = this.validateAIOutput(rawAiOutput);
+      // Calculate cost telemetry (based on gemini-1.5-flash pricing)
+      const inputTokens = aiResponse.inputTokens;
+      const outputTokens = aiResponse.outputTokens;
+      const estimatedCost =
+        inputTokens !== null && outputTokens !== null
+          ? inputTokens * 0.000000075 + outputTokens * 0.0000003
+          : null;
 
-    // 4. Guardrails & Confidence Evaluation & Human Escalation
-    const finalizedDecision = this.applyGuardrailsAndEscalation(rawText, parsedOutput);
+      // 2. Parse JSON (Guardrail 1: JSON cannot be parsed)
+      let parsedJson: any;
+      try {
+        const cleanedJson = this.extractJson(aiResponse.rawResponse);
+        parsedJson = JSON.parse(cleanedJson);
+      } catch (err) {
+        console.error('Failed to parse AI JSON:', aiResponse.rawResponse);
+        return this.createFallbackDecision(
+          messageId,
+          'JSON cannot be parsed: The AI model response was not valid JSON.',
+          model,
+          promptVersion,
+          latencyMs,
+          inputTokens,
+          outputTokens,
+          estimatedCost
+        );
+      }
 
-    const latencyMs = Date.now() - startTime;
+      // 3. Schema Validation (Guardrail 2: Required fields are missing / malformed)
+      const validationResult = triageDecisionSchema.safeParse(parsedJson);
+      if (!validationResult.success) {
+        console.error('AI JSON schema validation failed:', validationResult.error.format());
+        return this.createFallbackDecision(
+          messageId,
+          'Required fields are missing or type-mismatched in AI response.',
+          model,
+          promptVersion,
+          latencyMs,
+          inputTokens,
+          outputTokens,
+          estimatedCost
+        );
+      }
 
-    return {
-      messageId,
-      ...finalizedDecision,
-      model: 'sentinel-classifier-v1-mock',
-      promptVersion: '1.0.0-phase1',
-      latencyMs,
-    };
+      const decisionOutput = validationResult.data;
+
+      // 4. Apply Deterministic Guardrails (Guardrails 3, 4, 5, 7, 8, 9, 10, 11)
+      const finalizedDecision = this.applyGuardrails(rawText, decisionOutput);
+
+      return {
+        messageId,
+        ...finalizedDecision,
+        model,
+        promptVersion,
+        latencyMs,
+        inputTokens,
+        outputTokens,
+        estimatedCost,
+      };
+    } catch (error: any) {
+      console.error('Triage pipeline execution error:', error);
+      const latencyMs = Date.now() - startTime;
+      // Guardrail 12: Return fallback decision if model provider fails
+      return this.createFallbackDecision(
+        messageId,
+        `The model provider failed: ${error.message || 'API unavailable'}`,
+        model,
+        promptVersion,
+        latencyMs
+      );
+    }
   }
 
   /**
@@ -44,153 +115,123 @@ export class TriageService {
   }
 
   /**
-   * Pipeline Stage 2: AI Triage Simulation
-   * Uses heuristics and keyword analysis to mock the future LLM classification output
+   * Helper: Strip markdown formatting blocks (e.g. ```json ... ```) to extract raw JSON
    */
-  private async simulateAITriage(rawText: string): Promise<any> {
-    // Simulate slight network latency to mimic API call (e.g. 50-150ms)
-    await new Promise((resolve) => setTimeout(resolve, Math.random() * 100 + 50));
+  private extractJson(text: string): string {
+    let cleaned = text.trim();
+    if (cleaned.startsWith('```json')) {
+      cleaned = cleaned.slice(7);
+    } else if (cleaned.startsWith('```')) {
+      cleaned = cleaned.slice(3);
+    }
+    if (cleaned.endsWith('```')) {
+      cleaned = cleaned.slice(0, -3);
+    }
+    return cleaned.trim();
+  }
 
-    const text = rawText.toLowerCase();
+  /**
+   * Helper: Apply the 12 deterministic guardrails to the parsed JSON
+   */
+  private applyGuardrails(rawText: string, decision: TriageDecisionOutput): TriageDecisionOutput {
+    const output = { ...decision };
 
-    // Default structure that LLM is expected to return
-    let category: Category = 'general_question';
-    let priority: Priority = 'P2';
-    let summary = 'General customer inquiry';
-    let suggestedAction = 'Respond with standard greeting and ask for details.';
-    let confidence = 0.85;
-    let needsHuman = false;
-    let humanReason: string | null = null;
-
-    // Rules-based classification to mock AI response
-    if (text.includes('hacked') || text.includes('compromised') || text.includes('unauthorized') || text.includes('stolen')) {
-      category = 'security_abuse';
-      priority = 'P0';
-      summary = 'Customer reports account compromise or security incident';
-      suggestedAction = 'Lock account immediately, invalidate active sessions, and send password reset link.';
-      confidence = 0.98;
-    } else if (text.includes('ignore previous instructions') || text.includes('override prompt') || text.includes('system admin') || text.includes('system prompt')) {
-      category = 'security_abuse';
-      priority = 'P0';
-      summary = 'Potential prompt injection attempt detected';
-      suggestedAction = 'Reject instruction and flag customer account for review.';
-      confidence = 0.75;
-      needsHuman = true;
-      humanReason = 'System security guardrail: Possible adversarial input';
-    } else if (text.includes('refund') || text.includes('cancel') || text.includes('chargeback')) {
-      category = 'refund_cancellation';
-      priority = 'P1';
-      summary = 'Customer requesting refund or cancellation';
-      suggestedAction = 'Retrieve billing history, verify refund policy status, and initiate cancellation workflow.';
-      confidence = 0.95;
-    } else if (text.includes('billing') || text.includes('invoice') || text.includes('charged') || text.includes('credit card')) {
-      category = 'billing';
-      priority = 'P2';
-      summary = 'Billing query or invoice inquiry';
-      suggestedAction = 'Check account payment history and verify charge details.';
-      confidence = 0.90;
-    } else if (text.includes('delivery') || text.includes('order') || text.includes('tracking') || text.includes('shipped') || text.includes('where is my')) {
-      category = 'order_delivery';
-      priority = 'P2';
-      summary = 'Order delivery status request';
-      suggestedAction = 'Retrieve package tracking link and send status update email.';
-      confidence = 0.92;
-    } else if (text.includes('broke') || text.includes('crash') || text.includes('bug') || text.includes('error') || text.includes('not working') || text.includes('fail')) {
-      category = 'technical';
-      priority = 'P1';
-      summary = 'Technical support request or system error report';
-      suggestedAction = 'Request system error logs, screenshot, and escalate to tier 2 tech support if unresolved.';
-      confidence = 0.88;
-    } else if (text.includes('angry') || text.includes('terrible') || text.includes('worst') || text.includes('sue') || text.includes('useless')) {
-      category = 'complaint';
-      priority = 'P1';
-      summary = 'High severity customer complaint';
-      suggestedAction = 'Draft immediate apology and route to customer relationship team.';
-      confidence = 0.80;
-      needsHuman = true; // Escalate angry customers
-      humanReason = 'Customer escalation: High severity sentiment';
-    } else if (text.trim().split(/\s+/).length < 3) {
-      // Extremely short/vague messages
-      category = 'unknown';
-      priority = 'P3';
-      summary = 'Vague support inquiry';
-      suggestedAction = 'Ask customer to provide more details about their request.';
-      confidence = 0.45; // Low confidence
-    } else if (text.match(/[asdfghjklqwertyuiopzxcvbnm]{10,}/i)) {
-      // Gibberish detector
-      category = 'unknown';
-      priority = 'P3';
-      summary = 'Gibberish or garbled input';
-      suggestedAction = 'Mark as spam/ignore or reply asking for legible description.';
-      confidence = 0.30;
+    // Guardrail 3: Category is invalid
+    const isValidCategory = CATEGORIES.includes(output.category as any);
+    if (!isValidCategory) {
+      output.category = 'unknown';
+      output.needsHuman = true;
+      output.humanReason = 'AI response mapping error: Invalid category';
     }
 
+    // Guardrail 4: Priority is invalid
+    const isValidPriority = PRIORITIES.includes(output.priority as any);
+    if (!isValidPriority) {
+      output.priority = 'P1';
+      output.needsHuman = true;
+      output.humanReason = 'AI response mapping error: Invalid priority';
+    }
+
+    // Guardrail 5: Confidence is outside 0–1
+    if (output.confidence < 0 || output.confidence > 1) {
+      output.confidence = 0.0;
+      output.needsHuman = true;
+      output.humanReason = 'AI response mapping error: Confidence score out of bounds';
+    }
+
+    // Guardrail 7: Confidence is below the configured human-review threshold
+    const HUMAN_REVIEW_THRESHOLD = 0.70;
+    if (output.confidence < HUMAN_REVIEW_THRESHOLD) {
+      output.needsHuman = true;
+      output.humanReason = output.humanReason || 'AI confidence is below the configured threshold.';
+    }
+
+    // Guardrail 8: The message is clearly ambiguous
+    if (output.category === 'unknown') {
+      output.needsHuman = true;
+      output.humanReason = output.humanReason || "The customer's request is too ambiguous.";
+    }
+
+    // Guardrail 9: The message contains a security-sensitive issue
+    if (output.category === 'security_abuse') {
+      output.priority = 'P0'; // Enforce P0 for security
+      output.needsHuman = true;
+      output.humanReason = output.humanReason || 'The message contains a security-sensitive request.';
+    }
+
+    // Guardrail 10: The AI output contains unsupported claims / financial escalations
+    // Check if billing inquiry has high financial magnitude or important claims
+    const lowerText = rawText.toLowerCase();
+    const hasLargeAmount = /\b\d{3,}\b/.test(lowerText) || lowerText.includes('thousand') || lowerText.includes('million');
+    if (output.category === 'billing' && (output.priority === 'P0' || output.priority === 'P1' || hasLargeAmount)) {
+      output.needsHuman = true;
+      output.humanReason = output.humanReason || 'The issue has significant financial impact.';
+    }
+
+    // Guardrail 11: The model response is incomplete
+    if (!output.summary || output.summary.trim().length === 0 || !output.suggestedAction || output.suggestedAction.trim().length === 0) {
+      output.needsHuman = true;
+      output.humanReason = 'The AI response was incomplete or missing fields.';
+    }
+
+    // Guardrail 10 (Abuse/Out of Scope): If out of scope, escalate
+    if (output.category === 'out_of_scope') {
+      output.needsHuman = true;
+      output.humanReason = output.humanReason || 'The request is out of scope.';
+    }
+
+    return output;
+  }
+
+  /**
+   * Helper: Construct a standard fallback triage decision for validation/network failures
+   */
+  private createFallbackDecision(
+    messageId: string,
+    reason: string,
+    model: string,
+    promptVersion: string,
+    latencyMs: number,
+    inputTokens: number | null = null,
+    outputTokens: number | null = null,
+    estimatedCost: number | null = null
+  ): Omit<ITriageDecision, 'createdAt'> {
     return {
-      category,
-      priority,
-      summary,
-      suggestedAction,
-      confidence,
-      needsHuman,
-      humanReason,
+      messageId,
+      category: 'unknown',
+      priority: 'P1',
+      summary: 'Classification failed: The pipeline encountered a system, network, or schema validation error.',
+      suggestedAction: 'Escalate to standard customer support team for manual inspection.',
+      needsHuman: true,
+      confidence: 0.0,
+      humanReason: reason,
+      model,
+      promptVersion,
+      latencyMs,
+      inputTokens,
+      outputTokens,
+      estimatedCost,
     };
-  }
-
-  /**
-   * Pipeline Stage 3: Schema Validation
-   * Enforces strict schema constraints on the AI output
-   */
-  private validateAIOutput(rawOutput: any): TriageDecisionOutput {
-    const parseResult = triageDecisionSchema.safeParse(rawOutput);
-    if (!parseResult.success) {
-      console.error('Pipeline Error: AI Output schema validation failed', parseResult.error.format());
-      // Return a failsafe human review triage decision instead of crashing
-      return {
-        category: 'unknown',
-        priority: 'P1',
-        summary: 'Failed to parse AI output',
-        suggestedAction: 'Manually review raw message.',
-        confidence: 0.0,
-        needsHuman: true,
-        humanReason: 'Failsafe: AI output malformed',
-      };
-    }
-    return parseResult.data;
-  }
-
-  /**
-   * Pipeline Stage 4 & 5: Guardrails, Confidence Evaluation, and Human Escalation
-   * Enforces rules around high/low confidence and specific safety conditions
-   */
-  private applyGuardrailsAndEscalation(rawText: string, decision: TriageDecisionOutput): TriageDecisionOutput {
-    const finalDecision = { ...decision };
-
-    // Rule A: Never guess. If confidence is below threshold, escalate.
-    const CONFIDENCE_THRESHOLD = 0.70;
-    if (finalDecision.confidence < CONFIDENCE_THRESHOLD) {
-      finalDecision.needsHuman = true;
-      finalDecision.humanReason = finalDecision.humanReason || `Low confidence evaluation (${Math.round(finalDecision.confidence * 100)}%)`;
-    }
-
-    // Rule B: Security/Abuse categories must always go to human review.
-    if (finalDecision.category === 'security_abuse') {
-      finalDecision.needsHuman = true;
-      finalDecision.humanReason = finalDecision.humanReason || 'High-risk security triage';
-    }
-
-    // Rule C: Out of scope must go to human review for manual redirection.
-    if (finalDecision.category === 'out_of_scope') {
-      finalDecision.needsHuman = true;
-      finalDecision.humanReason = finalDecision.humanReason || 'Out of scope inquiry';
-    }
-
-    // Rule D: Vague/Garbage input that triggers "unknown" category gets escalated.
-    if (finalDecision.category === 'unknown') {
-      finalDecision.needsHuman = true;
-      finalDecision.humanReason = finalDecision.humanReason || 'Unable to classify customer intent';
-    }
-
-    return finalDecision;
   }
 }
 

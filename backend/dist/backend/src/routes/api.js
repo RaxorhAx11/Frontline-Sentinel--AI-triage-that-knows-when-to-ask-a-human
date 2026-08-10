@@ -13,6 +13,9 @@ router.get('/messages/stats', message_controller_1.getDashboardStats);
 // Message creation and list endpoints
 router.post('/messages', (0, validate_middleware_1.validateBody)(message_validator_1.createMessageSchema), message_controller_1.createMessage);
 router.get('/messages', message_controller_1.getMessages);
+// Run/Retry triage endpoints
+router.post('/triage/:messageId', message_controller_1.runTriage);
+router.post('/triage/:messageId/retry', message_controller_1.retryTriage);
 // Single message details endpoint
 router.get('/messages/:id', message_controller_1.getMessageById);
 exports.default = router;

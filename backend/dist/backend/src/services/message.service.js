@@ -6,53 +6,99 @@ const TriageDecision_1 = require("../models/TriageDecision");
 const triage_service_1 = require("./triage.service");
 class MessageService {
     /**
-     * Creates a new message and immediately runs it through the triage pipeline.
+     * Creates a new message and saves it in a pending state.
      */
     async createMessage(rawText) {
-        // 1. Create message in pending state
         const messageDoc = new Message_1.Message({
             rawText,
             status: 'pending',
         });
         await messageDoc.save();
-        const messageId = messageDoc._id.toString();
+        return {
+            _id: messageDoc._id.toString(),
+            rawText: messageDoc.rawText,
+            status: messageDoc.status,
+            createdAt: messageDoc.createdAt.toISOString(),
+            updatedAt: messageDoc.updatedAt.toISOString(),
+            triageDecision: null,
+        };
+    }
+    /**
+     * Runs the triage pipeline for a specific message.
+     */
+    async runTriage(messageId) {
+        const messageDoc = await Message_1.Message.findById(messageId);
+        if (!messageDoc) {
+            throw new Error(`Message with ID ${messageId} not found`);
+        }
+        // Verify eligibility: skip if already processed successfully
+        if (messageDoc.status === 'completed' || messageDoc.status === 'human_review') {
+            const existing = await TriageDecision_1.TriageDecision.findOne({ messageId }).lean();
+            if (existing) {
+                return {
+                    ...existing,
+                    id: existing._id.toString(),
+                    messageId: existing.messageId.toString(),
+                };
+            }
+        }
+        messageDoc.status = 'processing';
+        await messageDoc.save();
         try {
-            // Update status to processing
-            messageDoc.status = 'processing';
-            await messageDoc.save();
-            // 2. Execute Triage Pipeline
-            const triageResult = await triage_service_1.triageService.triageMessage(messageId, rawText);
-            // 3. Determine final message status based on triage decision
+            const triageResult = await triage_service_1.triageService.triageMessage(messageId, messageDoc.rawText);
             const finalStatus = triageResult.needsHuman ? 'human_review' : 'completed';
             messageDoc.status = finalStatus;
             await messageDoc.save();
-            // 4. Save Triage Decision
+            // Save Triage Decision
             const decisionDoc = new TriageDecision_1.TriageDecision({
                 ...triageResult,
             });
             await decisionDoc.save();
             return {
-                _id: messageId,
-                rawText: messageDoc.rawText,
-                status: messageDoc.status,
-                createdAt: messageDoc.createdAt.toISOString(),
-                updatedAt: messageDoc.updatedAt.toISOString(),
-                triageDecision: decisionDoc.toJSON(),
+                ...decisionDoc.toJSON(),
+                id: decisionDoc._id.toString(),
+                messageId: decisionDoc.messageId.toString(),
             };
         }
         catch (error) {
-            console.error(`Pipeline failure for message ${messageId}:`, error);
-            // Fallback: update status to failed
             messageDoc.status = 'failed';
             await messageDoc.save();
+            throw error;
+        }
+    }
+    /**
+     * Retries a failed triage or re-triages an existing message.
+     * Cleans up existing decisions first to respect the unique index.
+     */
+    async retryTriage(messageId) {
+        const messageDoc = await Message_1.Message.findById(messageId);
+        if (!messageDoc) {
+            throw new Error(`Message with ID ${messageId} not found`);
+        }
+        // Clean up any old triage decisions first
+        await TriageDecision_1.TriageDecision.deleteMany({ messageId });
+        messageDoc.status = 'processing';
+        await messageDoc.save();
+        try {
+            const triageResult = await triage_service_1.triageService.triageMessage(messageId, messageDoc.rawText);
+            const finalStatus = triageResult.needsHuman ? 'human_review' : 'completed';
+            messageDoc.status = finalStatus;
+            await messageDoc.save();
+            // Save Triage Decision
+            const decisionDoc = new TriageDecision_1.TriageDecision({
+                ...triageResult,
+            });
+            await decisionDoc.save();
             return {
-                _id: messageId,
-                rawText: messageDoc.rawText,
-                status: messageDoc.status,
-                createdAt: messageDoc.createdAt.toISOString(),
-                updatedAt: messageDoc.updatedAt.toISOString(),
-                triageDecision: null,
+                ...decisionDoc.toJSON(),
+                id: decisionDoc._id.toString(),
+                messageId: decisionDoc.messageId.toString(),
             };
+        }
+        catch (error) {
+            messageDoc.status = 'failed';
+            await messageDoc.save();
+            throw error;
         }
     }
     /**

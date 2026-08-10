@@ -84,3 +84,63 @@ export const getDashboardStats = async (
     next(error);
   }
 };
+
+export const runTriage = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { messageId } = req.params;
+
+    if (!messageId.match(/^[0-9a-fA-F]{24}$/)) {
+      res.status(400).json({
+        status: 'error',
+        message: 'Invalid message ID format',
+      });
+      return;
+    }
+
+    const result = await messageService.runTriage(messageId);
+    res.status(200).json(result);
+  } catch (error: any) {
+    if (error.message && error.message.includes('not found')) {
+      res.status(404).json({
+        status: 'error',
+        message: error.message,
+      });
+      return;
+    }
+    next(error);
+  }
+};
+
+export const retryTriage = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { messageId } = req.params;
+
+    if (!messageId.match(/^[0-9a-fA-F]{24}$/)) {
+      res.status(400).json({
+        status: 'error',
+        message: 'Invalid message ID format',
+      });
+      return;
+    }
+
+    const result = await messageService.retryTriage(messageId);
+    res.status(200).json(result);
+  } catch (error: any) {
+    if (error.message && error.message.includes('not found')) {
+      res.status(404).json({
+        status: 'error',
+        message: error.message,
+      });
+      return;
+    }
+    next(error);
+  }
+};

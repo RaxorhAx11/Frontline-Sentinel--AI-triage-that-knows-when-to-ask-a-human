@@ -21,6 +21,9 @@ export interface ITriageDecision {
   model?: string | null;
   promptVersion?: string | null;
   latencyMs?: number | null;
+  inputTokens?: number | null;
+  outputTokens?: number | null;
+  estimatedCost?: number | null;
   createdAt: string;
 }
 

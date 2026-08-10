@@ -13,6 +13,9 @@ export interface IDbTriageDecision {
   model: string | null;
   promptVersion: string | null;
   latencyMs: number | null;
+  inputTokens: number | null;
+  outputTokens: number | null;
+  estimatedCost: number | null;
 }
 
 const TriageDecisionSchema = new Schema<IDbTriageDecision>(
@@ -66,6 +69,18 @@ const TriageDecisionSchema = new Schema<IDbTriageDecision>(
       default: null,
     },
     latencyMs: {
+      type: Number,
+      default: null,
+    },
+    inputTokens: {
+      type: Number,
+      default: null,
+    },
+    outputTokens: {
+      type: Number,
+      default: null,
+    },
+    estimatedCost: {
       type: Number,
       default: null,
     },
