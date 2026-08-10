@@ -28,6 +28,7 @@ interface DashboardViewProps {
   onRefresh: () => void;
   onNavigateToReviews: () => void;
   onSelectMessage: (msg: IMessageDetail) => void;
+  onResetData: () => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -38,6 +39,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onRefresh,
   onNavigateToReviews,
   onSelectMessage,
+  onResetData,
 }) => {
   const getPriorityBadge = (priority: string) => {
     const base = 'px-2.5 py-0.5 rounded text-xs font-bold border ';
@@ -140,14 +142,30 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   return (
     <div className="space-y-6">
       {/* 1. Value Proposition Product Explanation */}
-      <div className="bg-gradient-to-r from-zinc-900 to-zinc-950 border border-zinc-800 rounded-xl p-6 relative overflow-hidden shadow-lg">
+      <div className="bg-gradient-to-r from-zinc-900 to-zinc-950 border border-zinc-800 rounded-xl p-6 relative overflow-hidden shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="absolute top-0 right-0 p-8 opacity-5">
           <Cpu size={120} className="text-white" />
         </div>
-        <h2 className="text-2xl font-black text-white tracking-tight">Frontline Sentinel Dashboard</h2>
-        <p className="text-zinc-300 text-sm mt-2 max-w-2xl leading-relaxed">
-          Frontline Sentinel automatically triages customer requests and routes uncertain or risky cases to human review.
-        </p>
+        <div>
+          <h2 className="text-2xl font-black text-white tracking-tight">Frontline Sentinel Dashboard</h2>
+          <p className="text-zinc-300 text-sm mt-2 max-w-2xl leading-relaxed">
+            Frontline Sentinel automatically triages customer requests and routes uncertain or risky cases to human review.
+          </p>
+        </div>
+        <div className="flex gap-2 shrink-0 z-10">
+          <button
+            onClick={onRefresh}
+            className="text-xs font-bold text-white hover:bg-zinc-800 bg-zinc-900 border border-zinc-800 px-4 py-2.5 rounded-lg transition-colors cursor-pointer"
+          >
+            Refresh
+          </button>
+          <button
+            onClick={onResetData}
+            className="text-xs font-bold text-red-400 hover:text-white hover:bg-red-950/80 bg-zinc-900/60 border border-red-900/40 hover:border-red-650 px-4 py-2.5 rounded-lg transition-all duration-200 cursor-pointer shadow-lg shadow-red-950/10"
+          >
+            Reset All Data
+          </button>
+        </div>
       </div>
 
       {/* 2. Top KPI Cards */}

@@ -13,6 +13,8 @@ import {
   pauseBulkTriage,
   stopBulkTriage,
   getMessagesStats,
+  deleteMessage,
+  resetAllData,
 } from '../controllers/message.controller';
 import {
   getEvaluations,
@@ -48,6 +50,8 @@ router.post('/triage/bulk/stop', stopBulkTriage);
 // Message creation and list endpoints
 router.post('/messages', validateBody(createMessageSchema), createMessage);
 router.get('/messages', getMessages);
+router.delete('/messages', resetAllData);
+router.delete('/messages/:messageId', deleteMessage);
 
 // Run/Retry triage endpoints
 router.post('/triage/:messageId', runTriage);

@@ -24,6 +24,10 @@ export default function App() {
   const [selectedReviewCase, setSelectedReviewCase] = useState<any>(null);
   const [refreshReviewsToggle, setRefreshReviewsToggle] = useState(false);
 
+  // Data management states
+  const [deleteConfirmMessageId, setDeleteConfirmMessageId] = useState<string | null>(null);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalMessages, setTotalMessages] = useState(0);
@@ -162,6 +166,43 @@ export default function App() {
     handleRefresh();
   };
 
+  const handleDeleteMessage = (messageId: string) => {
+    setDeleteConfirmMessageId(messageId);
+  };
+
+  const executeDeleteMessage = async () => {
+    if (!deleteConfirmMessageId) return;
+    try {
+      await api.deleteMessage(deleteConfirmMessageId);
+      if (selectedMessage?._id === deleteConfirmMessageId) {
+        setSelectedMessage(null);
+      }
+      await Promise.all([fetchStats(), fetchMessages(page)]);
+    } catch (err) {
+      console.error('Failed to delete message:', err);
+    } finally {
+      setDeleteConfirmMessageId(null);
+    }
+  };
+
+  const handleResetData = () => {
+    setShowResetConfirm(true);
+  };
+
+  const executeResetData = async () => {
+    try {
+      await api.resetAllData();
+      setSelectedMessage(null);
+      setSelectedReviewCase(null);
+      setPage(1);
+      await Promise.all([fetchStats(), fetchMessages(1)]);
+    } catch (err) {
+      console.error('Failed to reset data:', err);
+    } finally {
+      setShowResetConfirm(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-zinc-950 flex flex-col selection:bg-zinc-800 text-zinc-100 font-sans antialiased">
       {/* Header Navigation */}
@@ -257,6 +298,7 @@ export default function App() {
             onRefresh={handleRefresh}
             onNavigateToReviews={() => setActiveTab('reviews')}
             onSelectMessage={handleSelectMessage}
+            onResetData={handleResetData}
           />
         )}
 
@@ -279,6 +321,7 @@ export default function App() {
                   fetchMessages(newPage);
                 }}
                 onSelectMessage={handleSelectMessage}
+                onDeleteMessage={handleDeleteMessage}
               />
             </div>
 
@@ -331,6 +374,7 @@ export default function App() {
           onClose={() => setSelectedMessage(null)}
           onTriage={handleTriage}
           triaging={triaging}
+          onDeleteMessage={handleDeleteMessage}
         />
       )}
 
@@ -341,6 +385,63 @@ export default function App() {
           onClose={() => setSelectedReviewCase(null)}
           onReviewSubmitted={handleReviewSubmitted}
         />
+      )}
+
+      {/* Custom Sleek Confirmation Modals */}
+      {deleteConfirmMessageId && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-zinc-950/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl space-y-6 backdrop-blur-md">
+            <div className="space-y-2">
+              <h3 className="text-lg font-black text-white">Confirm Deletion</h3>
+              <p className="text-zinc-400 text-xs leading-relaxed font-semibold">
+                Are you sure you want to delete this message? This will permanently remove the message and all associated triage decisions, ground truths, and human review records.
+              </p>
+            </div>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setDeleteConfirmMessageId(null)}
+                className="px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold text-xs transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={executeDeleteMessage}
+                className="px-4 py-2 rounded-lg bg-red-650 hover:bg-red-500 text-white font-bold text-xs transition-colors cursor-pointer shadow-lg shadow-red-900/30"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showResetConfirm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-zinc-950/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-zinc-900/90 border border-red-950/40 rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl space-y-6 backdrop-blur-md">
+            <div className="space-y-2">
+              <h3 className="text-lg font-black text-red-400">Reset Application Data</h3>
+              <p className="text-zinc-400 text-xs leading-relaxed font-semibold">
+                <span className="font-bold text-red-300 block mb-2 uppercase tracking-wider text-[10px]">Action Required: High Risk Zone</span>
+                This will delete ALL database records including Messages, Triage Decisions, Ground Truths, and Reviews.
+                This action is irreversible. Application configuration, environment settings, and code files will NOT be affected.
+              </p>
+            </div>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowResetConfirm(false)}
+                className="px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold text-xs transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={executeResetData}
+                className="px-4 py-2 rounded-lg bg-red-650 hover:bg-red-500 text-white font-bold text-xs transition-colors cursor-pointer shadow-lg shadow-red-900/30"
+              >
+                Confirm Reset
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Footer */}

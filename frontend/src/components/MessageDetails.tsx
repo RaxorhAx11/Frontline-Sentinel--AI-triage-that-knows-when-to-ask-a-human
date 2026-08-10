@@ -7,6 +7,7 @@ interface MessageDetailsProps {
   onClose: () => void;
   onTriage: (messageId: string, isRetry: boolean) => Promise<void>;
   triaging: boolean;
+  onDeleteMessage: (messageId: string) => void;
 }
 
 export const MessageDetails: React.FC<MessageDetailsProps> = ({
@@ -14,6 +15,7 @@ export const MessageDetails: React.FC<MessageDetailsProps> = ({
   onClose,
   onTriage,
   triaging,
+  onDeleteMessage,
 }) => {
   if (!message) return null;
 
@@ -70,12 +72,20 @@ export const MessageDetails: React.FC<MessageDetailsProps> = ({
             <h3 className="text-lg font-bold text-white">Diagnostics Inspector</h3>
             <span className="text-xs text-zinc-500 font-mono">ID: {message._id}</span>
           </div>
-          <button
-            onClick={onClose}
-            className="p-1 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-colors cursor-pointer"
-          >
-            <X size={20} />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => onDeleteMessage(message._id)}
+              className="px-3 py-1.5 rounded-lg bg-red-950/40 hover:bg-red-900/60 text-red-400 hover:text-white border border-red-900/30 hover:border-red-650 text-xs font-bold transition-all duration-200 cursor-pointer"
+            >
+              Delete
+            </button>
+            <button
+              onClick={onClose}
+              className="p-1 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-colors cursor-pointer"
+            >
+              <X size={20} />
+            </button>
+          </div>
         </div>
 
         {/* Content */}

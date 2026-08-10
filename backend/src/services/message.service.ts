@@ -1,5 +1,7 @@
 import { Message } from '../models/Message';
 import { TriageDecision } from '../models/TriageDecision';
+import { GroundTruth } from '../models/GroundTruth';
+import { Review } from '../models/Review';
 import { triageService } from './triage.service';
 import { IMessageDetail, IMessagesResponse } from '../../../shared/src/types';
 import { MessageStatus } from '../../../shared/src/constants';
@@ -518,6 +520,34 @@ export class MessageService {
     }
 
     return data;
+  }
+
+  /**
+   * Deletes a specific message and all its related records.
+   */
+  public async deleteMessage(messageId: string): Promise<boolean> {
+    // Delete related records in parallel to prevent leaving orphans
+    await Promise.all([
+      TriageDecision.deleteMany({ messageId }),
+      GroundTruth.deleteMany({ messageId }),
+      Review.deleteMany({ messageId })
+    ]);
+
+    // Delete the message itself
+    const result = await Message.deleteOne({ _id: messageId });
+    return (result.deletedCount ?? 0) > 0;
+  }
+
+  /**
+   * Deletes all Messages, TriageDecisions, GroundTruths, and Reviews.
+   */
+  public async resetAllData(): Promise<void> {
+    await Promise.all([
+      TriageDecision.deleteMany({}),
+      GroundTruth.deleteMany({}),
+      Review.deleteMany({}),
+      Message.deleteMany({})
+    ]);
   }
 }
 

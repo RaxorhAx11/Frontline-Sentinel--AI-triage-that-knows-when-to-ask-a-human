@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getMessagesStats = exports.stopBulkTriage = exports.pauseBulkTriage = exports.getBulkTriageStatus = exports.startBulkTriage = exports.importMessagesBulk = exports.retryTriage = exports.runTriage = exports.getDashboardStats = exports.getMessageById = exports.getMessages = exports.createMessage = void 0;
+exports.resetAllData = exports.deleteMessage = exports.getMessagesStats = exports.stopBulkTriage = exports.pauseBulkTriage = exports.getBulkTriageStatus = exports.startBulkTriage = exports.importMessagesBulk = exports.retryTriage = exports.runTriage = exports.getDashboardStats = exports.getMessageById = exports.getMessages = exports.createMessage = void 0;
 const message_service_1 = require("../services/message.service");
 const bulkTriage_service_1 = require("../services/bulkTriage.service");
 const createMessage = async (req, res, next) => {
@@ -194,3 +194,53 @@ const getMessagesStats = async (req, res, next) => {
     }
 };
 exports.getMessagesStats = getMessagesStats;
+const deleteMessage = async (req, res, next) => {
+    try {
+        const { messageId } = req.params;
+        if (!messageId.match(/^[0-9a-fA-F]{24}$/)) {
+            res.status(400).json({
+                status: 'error',
+                message: 'Invalid message ID format',
+            });
+            return;
+        }
+        const deleted = await message_service_1.messageService.deleteMessage(messageId);
+        if (!deleted) {
+            res.status(404).json({
+                status: 'error',
+                message: `Message with ID ${messageId} not found`,
+            });
+            return;
+        }
+        res.status(200).json({
+            status: 'success',
+            message: 'Message and related data deleted successfully',
+        });
+    }
+    catch (error) {
+        console.error('Error deleting message:', error);
+        res.status(500).json({
+            status: 'error',
+            message: 'An error occurred while deleting the message',
+        });
+    }
+};
+exports.deleteMessage = deleteMessage;
+const resetAllData = async (req, res, next) => {
+    try {
+        await message_service_1.messageService.resetAllData();
+        bulkTriage_service_1.bulkTriageService.reset();
+        res.status(200).json({
+            status: 'success',
+            message: 'All application and demo data reset successfully',
+        });
+    }
+    catch (error) {
+        console.error('Error resetting data:', error);
+        res.status(500).json({
+            status: 'error',
+            message: 'An error occurred while resetting the application data',
+        });
+    }
+};
+exports.resetAllData = resetAllData;

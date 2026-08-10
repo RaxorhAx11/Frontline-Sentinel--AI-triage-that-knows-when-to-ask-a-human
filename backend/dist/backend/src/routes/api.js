@@ -21,6 +21,8 @@ router.post('/triage/bulk/stop', message_controller_1.stopBulkTriage);
 // Message creation and list endpoints
 router.post('/messages', (0, validate_middleware_1.validateBody)(message_validator_1.createMessageSchema), message_controller_1.createMessage);
 router.get('/messages', message_controller_1.getMessages);
+router.delete('/messages', message_controller_1.resetAllData);
+router.delete('/messages/:messageId', message_controller_1.deleteMessage);
 // Run/Retry triage endpoints
 router.post('/triage/:messageId', message_controller_1.runTriage);
 router.post('/triage/:messageId/retry', message_controller_1.retryTriage);

@@ -3,6 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.messageService = exports.MessageService = void 0;
 const Message_1 = require("../models/Message");
 const TriageDecision_1 = require("../models/TriageDecision");
+const GroundTruth_1 = require("../models/GroundTruth");
+const Review_1 = require("../models/Review");
 const triage_service_1 = require("./triage.service");
 class MessageService {
     /**
@@ -467,6 +469,31 @@ class MessageService {
             data.push(rowObj);
         }
         return data;
+    }
+    /**
+     * Deletes a specific message and all its related records.
+     */
+    async deleteMessage(messageId) {
+        // Delete related records in parallel to prevent leaving orphans
+        await Promise.all([
+            TriageDecision_1.TriageDecision.deleteMany({ messageId }),
+            GroundTruth_1.GroundTruth.deleteMany({ messageId }),
+            Review_1.Review.deleteMany({ messageId })
+        ]);
+        // Delete the message itself
+        const result = await Message_1.Message.deleteOne({ _id: messageId });
+        return (result.deletedCount ?? 0) > 0;
+    }
+    /**
+     * Deletes all Messages, TriageDecisions, GroundTruths, and Reviews.
+     */
+    async resetAllData() {
+        await Promise.all([
+            TriageDecision_1.TriageDecision.deleteMany({}),
+            GroundTruth_1.GroundTruth.deleteMany({}),
+            Review_1.Review.deleteMany({}),
+            Message_1.Message.deleteMany({})
+        ]);
     }
 }
 exports.MessageService = MessageService;

@@ -1,5 +1,4 @@
-import React from 'react';
-import { ShieldAlert, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
+import { ShieldAlert, ChevronLeft, ChevronRight, Eye, Trash2 } from 'lucide-react';
 import type { IMessageDetail } from '../../../shared/src/types';
 
 interface MessagesTableProps {
@@ -14,6 +13,7 @@ interface MessagesTableProps {
   onFilterChange: (type: 'status' | 'priority' | 'category', value: string) => void;
   onPageChange: (newPage: number) => void;
   onSelectMessage: (msg: IMessageDetail) => void;
+  onDeleteMessage: (messageId: string) => void;
 }
 
 export const MessagesTable: React.FC<MessagesTableProps> = ({
@@ -27,6 +27,7 @@ export const MessagesTable: React.FC<MessagesTableProps> = ({
   onFilterChange,
   onPageChange,
   onSelectMessage,
+  onDeleteMessage,
 }) => {
   const getStatusBadge = (status: string) => {
     const base = 'inline-block whitespace-nowrap px-2.5 py-1 rounded-full text-xs font-semibold border ';
@@ -211,15 +212,26 @@ export const MessagesTable: React.FC<MessagesTableProps> = ({
                         <span className="text-zinc-600 text-xs">—</span>
                       )}
                     </td>
-                    <td className="py-4 px-6 text-right">
+                    <td className="py-4 px-6 text-right flex items-center justify-end gap-2">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           onSelectMessage(msg);
                         }}
                         className="p-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white transition-colors"
+                        title="View Details"
                       >
                         <Eye size={14} />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDeleteMessage(msg._id);
+                        }}
+                        className="p-1.5 rounded-lg bg-zinc-850 hover:bg-red-950/40 text-zinc-400 hover:text-red-400 border border-zinc-800 hover:border-red-900/30 transition-all duration-200 cursor-pointer"
+                        title="Delete Message"
+                      >
+                        <Trash2 size={14} />
                       </button>
                     </td>
                   </tr>

@@ -240,3 +240,63 @@ export const getMessagesStats = async (
     next(error);
   }
 };
+
+export const deleteMessage = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { messageId } = req.params;
+
+    if (!messageId.match(/^[0-9a-fA-F]{24}$/)) {
+      res.status(400).json({
+        status: 'error',
+        message: 'Invalid message ID format',
+      });
+      return;
+    }
+
+    const deleted = await messageService.deleteMessage(messageId);
+    if (!deleted) {
+      res.status(404).json({
+        status: 'error',
+        message: `Message with ID ${messageId} not found`,
+      });
+      return;
+    }
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Message and related data deleted successfully',
+    });
+  } catch (error) {
+    console.error('Error deleting message:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'An error occurred while deleting the message',
+    });
+  }
+};
+
+export const resetAllData = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    await messageService.resetAllData();
+    bulkTriageService.reset();
+    res.status(200).json({
+      status: 'success',
+      message: 'All application and demo data reset successfully',
+    });
+  } catch (error) {
+    console.error('Error resetting data:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'An error occurred while resetting the application data',
+    });
+  }
+};
+

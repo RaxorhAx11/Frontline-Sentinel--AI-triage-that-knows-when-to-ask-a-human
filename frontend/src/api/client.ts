@@ -72,6 +72,16 @@ export const api = {
 
   getMessageById: (id: string) => request<IMessageDetail>(`/messages/${id}`),
 
+  deleteMessage: (messageId: string) =>
+    request<{ status: string; message: string }>(`/messages/${messageId}`, {
+      method: 'DELETE',
+    }),
+
+  resetAllData: () =>
+    request<{ status: string; message: string }>('/messages', {
+      method: 'DELETE',
+    }),
+
   createMessage: (rawText: string) =>
     request<IMessageDetail>('/messages', {
       method: 'POST',
